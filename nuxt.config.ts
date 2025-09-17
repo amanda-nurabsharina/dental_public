@@ -9,6 +9,20 @@ export default defineNuxtConfig({
     },
     vuetifyOptions: {
       /* vuetify options */
+      theme: {
+        themes: {
+          light: {
+            dark: false,
+            colors: {
+              white: "#FFFFFF", // #FFFFFF
+              black: "#000000", // #000000
+              primary: "#00813D", // #00813D
+              "primary-20": "#E6FFEA", // #E6FFEA
+              background: "F6F8FA", // #F6F8FA
+            },
+          },
+        },
+      },
     },
   },
 });
