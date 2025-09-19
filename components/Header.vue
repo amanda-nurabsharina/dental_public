@@ -1,17 +1,13 @@
 <template>
-  <v-app-bar color="white" elevation="1" class="px-4">
-    <v-app-bar-nav-icon
-      color="black"
-      class="hidden-md-and-up"
-      @click="drawer = !drawer"
-    />
-
+  <v-app-bar color="white" elevation="0">
     <!-- Desktop Layout -->
     <div class="d-none d-md-flex align-center header-container">
       <!-- Brand -->
       <div class="brand-section">
         <NuxtLink to="/" class="text-decoration-none">
-          <span class="text-h5 font-weight-bold text-primary">Dental Diary</span>
+          <span class="text-h5 font-weight-bold text-primary"
+            >Dental Diary.</span
+          >
         </NuxtLink>
       </div>
 
@@ -37,7 +33,7 @@
           to="/reserve"
           elevation="0"
         >
-          Reserve Now <v-icon icon="mdi-arrow-right" />
+          Reservasi <v-icon icon="mdi-arrow-right" />
         </v-btn>
       </div>
     </div>
@@ -45,13 +41,19 @@
     <!-- Mobile Title -->
     <v-app-bar-title class="d-md-none">
       <NuxtLink to="/" class="text-decoration-none">
-        <span class="text-h5 font-weight-bold text-primary">Dental Diary</span>
+        <span class="text-h5 font-weight-bold text-primary">Dental Diary.</span>
       </NuxtLink>
     </v-app-bar-title>
+
+    <v-app-bar-nav-icon
+      color="black"
+      class="hidden-md-and-up"
+      @click="drawer = !drawer"
+    />
   </v-app-bar>
 
   <!-- Mobile Navigation Drawer -->
-  <v-navigation-drawer v-model="drawer" temporary location="left">
+  <v-navigation-drawer v-model="drawer" temporary location="right">
     <v-list>
       <v-list-item
         v-for="item in menuItems"
@@ -64,7 +66,7 @@
       </v-list-item>
       <v-divider class="my-2" />
       <v-list-item to="/reserve" class="bg-primary text-white" link>
-        <v-list-item-title>Reserve Now</v-list-item-title>
+        <v-list-item-title>Reservasi</v-list-item-title>
       </v-list-item>
     </v-list>
   </v-navigation-drawer>
@@ -80,12 +82,12 @@ defineOptions({
 const drawer = ref(false);
 
 const menuItems = [
-  { title: "Home", to: "/" },
-  { title: "Services", to: "/services" },
-  { title: "Doctors", to: "/doctors" },
-  { title: "Schedule", to: "/schedule" },
-  { title: "Reviews", to: "/reviews" },
-  { title: "Contact Us", to: "/contact" },
+  { title: "Beranda", to: "/" },
+  { title: "Layanan", to: "/services" },
+  { title: "Dokter", to: "/doctors" },
+  { title: "Jadwal", to: "/schedule" },
+  { title: "Testimoni", to: "/reviews" },
+  { title: "Kontak Kami", to: "/contact" },
 ];
 </script>
 
