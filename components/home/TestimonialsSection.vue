@@ -1,190 +1,134 @@
 <template>
   <section class="testimonials-section py-16">
-    <v-container>
-      <h2 class="text-h3 text-center font-weight-bold mb-12">
-        What Our Patients Say
-      </h2>
+    <!-- Section Badge -->
+    <div class="text-center mb-4">
+      <v-chip color="primary-20" class="px-4 py-2" variant="flat">
+        <span class="text-primary text-body-2">Testimoni Pasien</span>
+      </v-chip>
+    </div>
 
-      <v-carousel
-        cycle
-        height="400"
-        hide-delimiter-background
-        show-arrows="hover"
-      >
-        <v-carousel-item
-          v-for="(page, pageIndex) in testimonialPages"
-          :key="pageIndex"
-        >
-          <v-row>
-            <v-col
-              v-for="(testimonial, index) in page"
-              :key="index"
-              cols="12"
-              md="4"
+    <!-- Section Heading -->
+    <h2 class="text-h3 text-center font-weight-bold mb-4 text-black">
+      Kata Mereka yang Sudah Merasakan
+    </h2>
+
+    <!-- Section Description -->
+    <p
+      class="text-body-1 text-grey-darken-1 text-center mb-16 max-w-lg mx-auto"
+    >
+      Ribuan pasien telah mempercayakan kesehatan gigi mereka kepada kami. Simak
+      pengalaman mereka dan buktikan sendiri kualitas layanan Dental Diary
+    </p>
+
+    <!-- Testimonials Carousel -->
+    <div class="testimonials-carousel position-relative">
+      <v-row>
+        <v-col cols="12">
+          <v-slide-group
+            v-model="selectedTestimonial"
+            class="pa-4"
+            selected-class="bg-primary"
+            show-arrows
+          >
+            <v-slide-group-item
+              v-for="testimonial in testimonials"
+              :key="testimonial.name"
             >
-              <v-card class="h-100 pa-6" variant="outlined">
-                <div class="d-flex flex-column h-100">
-                  <v-rating
-                    v-model="testimonial.rating"
-                    color="amber"
-                    density="compact"
-                    readonly
-                    half-increments
-                    class="mb-4"
-                  ></v-rating>
+              <div class="testimonial-card mx-3">
+                <!-- Rating -->
+                <div class="d-flex mb-4">
+                  <v-icon
+                    v-for="i in 5"
+                    :key="i"
+                    :color="
+                      i <= testimonial.rating
+                        ? 'amber-darken-2'
+                        : 'grey-lighten-1'
+                    "
+                    icon="mdi-star"
+                    size="20"
+                    class="mr-1"
+                  />
+                </div>
 
-                  <v-card-text class="text-body-1 flex-grow-1">
-                    "{{ testimonial.comment }}"
-                  </v-card-text>
+                <!-- Quote -->
+                <div class="testimonial-quote mb-6">
+                  <v-icon
+                    color="primary"
+                    size="32"
+                    icon="mdi-format-quote-open"
+                    class="quote-icon"
+                  />
+                  <p class="text-body-1 text-grey-darken-1">
+                    {{ testimonial.comment }}
+                  </p>
+                </div>
 
-                  <v-divider class="mb-4"></v-divider>
-
-                  <div class="d-flex align-center">
-                    <v-avatar
-                      :image="testimonial.avatar"
-                      size="48"
-                      class="mr-4"
-                    ></v-avatar>
-                    <div>
-                      <div class="text-subtitle-1 font-weight-bold">
-                        {{ testimonial.name }}
-                      </div>
-                      <div class="text-caption text-grey">
-                        {{ testimonial.date }}
-                      </div>
-                    </div>
+                <!-- User Info -->
+                <div class="d-flex align-center">
+                  <v-avatar
+                    :image="testimonial.avatar"
+                    size="48"
+                    class="mr-4"
+                  />
+                  <div class="text-subtitle-1 font-weight-bold text-black">
+                    {{ testimonial.name }}
                   </div>
                 </div>
-              </v-card>
-            </v-col>
-          </v-row>
-        </v-carousel-item>
-      </v-carousel>
-    </v-container>
+              </div>
+            </v-slide-group-item>
+          </v-slide-group>
+        </v-col>
+      </v-row>
+
+      <!-- Navigation -->
+      <div class="text-center mt-6">
+        <div class="d-inline-flex gap-2">
+          <v-btn
+            v-for="(_, i) in testimonialPages"
+            :key="i"
+            icon="mdi-circle"
+            size="x-small"
+            variant="text"
+            :color="selectedTestimonial === i ? 'primary' : 'grey'"
+            @click="selectedTestimonial = i"
+          />
+        </div>
+      </div>
+    </div>
   </section>
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
+
+defineOptions({
+  name: "TestimonialsSection",
+});
+
+const selectedTestimonial = ref(0);
+
 const testimonials = [
   {
-    name: "Emma Thompson",
-    avatar: "/images/avatar-1.jpg",
+    name: "Michelle S",
+    avatar: "/images/testimonials/michelle.jpg",
     rating: 5,
     comment:
-      "Amazing experience! Dr. Johnson and her team made my Invisalign journey so smooth and comfortable.",
-    date: "September 2025",
+      "Harga perawatan sangat terjangkau dengan kualitas premium. Hasil perawatan orthodonti saya sangat memuaskan dalam waktu singkat",
   },
   {
-    name: "James Wilson",
-    avatar: "/images/avatar-2.jpg",
-    rating: 4.5,
-    comment:
-      "Very professional service. The staff is friendly and the facilities are modern and clean.",
-    date: "August 2025",
-  },
-  {
-    name: "Sofia Garcia",
-    avatar: "/images/avatar-3.jpg",
+    name: "Jason",
+    avatar: "/images/testimonials/jason.jpg",
     rating: 5,
     comment:
-      "Best dental clinic in town! My kids love coming here for their check-ups.",
-    date: "August 2025",
+      "Pelayanan yang sangat memuaskan! Dokter dan staff sangat profesional. Hasil perawatan gigi saya melebihi ekspektasi. Sangat rekomendasi!",
   },
   {
-    name: "David Chen",
-    avatar: "/images/avatar-4.jpg",
+    name: "Yessica Yuliana",
+    avatar: "/images/testimonials/yessica.jpg",
     rating: 5,
     comment:
-      "Excellent cosmetic dentistry work. My new veneers look absolutely natural!",
-    date: "July 2025",
-  },
-  {
-    name: "Linda Martinez",
-    avatar: "/images/avatar-5.jpg",
-    rating: 4.5,
-    comment:
-      "Very thorough cleaning and examination. The hygienist was gentle and informative.",
-    date: "July 2025",
-  },
-  {
-    name: "Michael Brown",
-    avatar: "/images/avatar-6.jpg",
-    rating: 5,
-    comment:
-      "Great emergency service when I needed it most. Available 24/7 and very responsive.",
-    date: "June 2025",
-  },
-  {
-    name: "Sarah Anderson",
-    avatar: "/images/avatar-7.jpg",
-    rating: 5,
-    comment:
-      "The team here is amazing! They made my dental implant procedure completely painless.",
-    date: "June 2025",
-  },
-  {
-    name: "Robert Taylor",
-    avatar: "/images/avatar-8.jpg",
-    rating: 4.5,
-    comment:
-      "Very reasonable prices and they accept all major insurance plans. Highly recommend!",
-    date: "May 2025",
-  },
-  {
-    name: "Emily White",
-    avatar: "/images/avatar-9.jpg",
-    rating: 5,
-    comment:
-      "Dr. Chen is fantastic! He explained everything in detail and made me feel at ease.",
-    date: "May 2025",
-  },
-  {
-    name: "Daniel Lee",
-    avatar: "/images/avatar-10.jpg",
-    rating: 5,
-    comment:
-      "State-of-the-art equipment and very knowledgeable staff. Best dental experience ever!",
-    date: "April 2025",
-  },
-  {
-    name: "Maria Rodriguez",
-    avatar: "/images/avatar-11.jpg",
-    rating: 4.5,
-    comment:
-      "Love the family-friendly atmosphere. My whole family comes here for dental care.",
-    date: "April 2025",
-  },
-  {
-    name: "Thomas Wilson",
-    avatar: "/images/avatar-12.jpg",
-    rating: 5,
-    comment:
-      "The teeth whitening treatment gave amazing results. Very happy with the outcome!",
-    date: "March 2025",
-  },
-  {
-    name: "Anna Kim",
-    avatar: "/images/avatar-13.jpg",
-    rating: 5,
-    comment:
-      "Professional and caring staff. They really go above and beyond for patient care.",
-    date: "March 2025",
-  },
-  {
-    name: "William Johnson",
-    avatar: "/images/avatar-14.jpg",
-    rating: 4.5,
-    comment:
-      "Excellent orthodontic care. My daughter's braces experience has been great.",
-    date: "February 2025",
-  },
-  {
-    name: "Rachel Green",
-    avatar: "/images/avatar-15.jpg",
-    rating: 5,
-    comment:
-      "The most comfortable dental office I've ever been to. Highly recommended!",
-    date: "February 2025",
+      "Fasilitas klinik sangat modern dan bersih. Proses perawatan tidak menyakitkan sama sekali. Tim medis sangat berpengalaman dan ramah",
   },
 ];
 
@@ -204,11 +148,77 @@ const testimonialPages = testimonials.reduce((acc, curr, i) => {
   background-color: white;
 }
 
-.v-card {
-  transition: transform 0.3s;
+.max-w-lg {
+  max-width: 640px;
 }
 
-.v-card:hover {
+.testimonial-card {
+  width: 400px;
+  background-color: white;
+  border: 1px solid #eee;
+  border-radius: 16px;
+  padding: 24px;
+  transition: all 0.3s ease;
+}
+
+.testimonial-card:hover {
   transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.testimonial-quote {
+  position: relative;
+  padding-left: 40px;
+}
+
+.quote-icon {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0.2;
+}
+
+/* Navigation Styles */
+:deep(.v-slide-group__prev),
+:deep(.v-slide-group__next) {
+  background-color: white !important;
+  border-radius: 50% !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  margin: 0 8px !important;
+}
+
+:deep(.v-slide-group__prev--disabled),
+:deep(.v-slide-group__next--disabled) {
+  opacity: 0 !important;
+}
+
+/* Navigation Dots */
+.v-btn.v-btn--icon.v-btn--size-x-small {
+  width: 8px;
+  height: 8px;
+  margin: 0 4px;
+  padding: 0;
+}
+
+.v-btn.v-btn--icon.v-btn--size-x-small .v-icon {
+  font-size: 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 959px) {
+  .testimonial-card {
+    width: 360px;
+  }
+}
+
+@media (max-width: 599px) {
+  .testimonial-card {
+    width: 300px;
+  }
+
+  :deep(.v-slide-group__prev),
+  :deep(.v-slide-group__next) {
+    display: none !important;
+  }
 }
 </style>

@@ -1,94 +1,156 @@
 <template>
   <section class="services-section py-16">
     <v-container>
-      <h2 class="text-h3 text-center font-weight-bold mb-12">
-        Our Featured Services
+      <!-- Section Badge -->
+      <div class="text-center mb-4">
+        <v-chip color="primary-20" class="px-4 py-2" variant="flat">
+          <span class="text-primary text-body-2">Layanan Unggulan</span>
+        </v-chip>
+      </div>
+
+      <!-- Section Heading -->
+      <h2 class="text-h3 text-center font-weight-bold mb-16 text-black">
+        Layanan Perawatan Klinik
       </h2>
 
-      <v-carousel
-        cycle
-        height="500"
-        hide-delimiter-background
-        show-arrows="hover"
-      >
-        <v-carousel-item v-for="(service, i) in services" :key="i">
-          <v-row class="fill-height" no-gutters>
-            <v-col v-for="(item, j) in service" :key="j" cols="12" md="4">
-              <v-card class="mx-2 h-100" :image="item.image">
-                <v-overlay contained class="align-center justify-center">
-                  <v-card-title class="text-h5 text-white mb-2">
-                    {{ item.title }}
-                  </v-card-title>
-                  <v-card-text class="text-white text-center">
-                    {{ item.description }}
-                  </v-card-text>
-                  <v-btn
-                    color="green"
-                    variant="flat"
-                    class="mt-4"
-                    to="/services"
+      <!-- Services Carousel -->
+      <div class="services-carousel position-relative">
+        <v-row>
+          <v-col cols="12">
+            <v-slide-group
+              v-model="selectedService"
+              class="pa-4"
+              selected-class="bg-primary"
+              show-arrows
+            >
+              <v-slide-group-item
+                v-for="service in services"
+                :key="service.title"
+              >
+                <v-card
+                  class="service-card mx-3"
+                  width="360"
+                  elevation="0"
+                  rounded="xl"
+                >
+                  <v-img
+                    :src="service.image"
+                    width="360"
+                    height="371"
+                    class="rounded-xl"
                   >
-                    Learn More
-                  </v-btn>
-                </v-overlay>
-              </v-card>
-            </v-col>
-          </v-row>
-        </v-carousel-item>
-      </v-carousel>
+                    <template v-slot:placeholder>
+                      <v-row
+                        class="fill-height ma-0"
+                        align="center"
+                        justify="center"
+                      >
+                        <v-progress-circular
+                          indeterminate
+                          color="primary"
+                        ></v-progress-circular>
+                      </v-row>
+                    </template>
+                  </v-img>
+                </v-card>
+              </v-slide-group-item>
+            </v-slide-group>
+          </v-col>
+        </v-row>
+
+        <!-- Navigation Dots -->
+        <div class="text-center mt-6">
+          <div class="d-inline-flex gap-2">
+            <v-btn
+              v-for="(_, i) in services"
+              :key="i"
+              icon="mdi-circle"
+              size="x-small"
+              variant="text"
+              :color="selectedService === i ? 'primary' : 'grey'"
+              @click="selectedService = i"
+            ></v-btn>
+          </div>
+        </div>
+      </div>
     </v-container>
   </section>
 </template>
 
 <script setup lang="ts">
+import { ref } from "vue";
+
+defineOptions({
+  name: "ServicesSection",
+});
+
+const selectedService = ref(0);
+
 const services = [
-  [
-    {
-      title: "General Dentistry",
-      description: "Comprehensive dental care for all ages",
-      image: "/images/service-general.jpg",
-    },
-    {
-      title: "Cosmetic Dentistry",
-      description: "Transform your smile with our expert treatments",
-      image: "/images/service-cosmetic.jpg",
-    },
-    {
-      title: "Orthodontics",
-      description: "Straighten your teeth with modern solutions",
-      image: "/images/service-ortho.jpg",
-    },
-  ],
-  [
-    {
-      title: "Dental Implants",
-      description: "Permanent solution for missing teeth",
-      image: "/images/service-implants.jpg",
-    },
-    {
-      title: "Teeth Whitening",
-      description: "Professional whitening for a brighter smile",
-      image: "/images/service-whitening.jpg",
-    },
-    {
-      title: "Emergency Care",
-      description: "24/7 emergency dental services",
-      image: "/images/service-emergency.jpg",
-    },
-  ],
+  {
+    title: "Scaling Gigi",
+    description:
+      "Untuk membersihkan atau menghilangkan karang yang menempel di gigi gusi",
+    image: "/images/services/service-teeth-scaling.png",
+  },
+  {
+    title: "Pasang Behel Gigi",
+    description:
+      "Digunakan untuk memperbaiki posisi gigi yang tidak rata atau tidak sejajar",
+    image: "/images/services/service-teeth-scaling.png",
+  },
+  {
+    title: "Perawatan Gigi Anak",
+    description: "Perawatan menyeluruh untuk gigi buah hati anda",
+    image: "/images/services/service-teeth-scaling.png",
+  },
+  {
+    title: "Bleaching",
+    description:
+      "Bertujuan untuk memutihkan gigi yang mengalami perubahan warna",
+    image: "/images/services/service-teeth-scaling.png",
+  },
 ];
 </script>
 
 <style scoped>
 .services-section {
-  background-color: #f5f5f5;
+  background-color: white;
 }
 
-.v-card {
-  transition: transform 0.3s;
+.service-card {
+  transition: all 0.3s ease;
+  border: 1px solid #eee;
 }
 
-.v-card:hover {
-  transform: scale(1.02);
+.service-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* Custom navigation arrows */
+:deep(.v-slide-group__prev),
+:deep(.v-slide-group__next) {
+  background-color: white !important;
+  border-radius: 50% !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  margin: 0 8px !important;
+}
+
+:deep(.v-slide-group__prev--disabled),
+:deep(.v-slide-group__next--disabled) {
+  opacity: 0 !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 599px) {
+  .service-card {
+    width: 260px !important;
+  }
+
+  :deep(.v-slide-group__prev),
+  :deep(.v-slide-group__next) {
+    display: none !important;
+  }
 }
 </style>

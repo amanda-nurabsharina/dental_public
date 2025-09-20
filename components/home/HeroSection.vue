@@ -1,6 +1,6 @@
 <template>
   <section class="hero-section py-16">
-    <v-container>
+    <v-container class="pa-0">
       <v-row align="center">
         <!-- Left Column: Content -->
         <v-col cols="12" md="6">
@@ -23,7 +23,7 @@
           </h1>
 
           <!-- Description -->
-          <p class="text-body-1 mb-8 text-grey-darken-1">
+          <p class="text-body-1 mb-8 text-black">
             Klinik Gigi Modern dengan Perawatan Profesional, Nyaman, dan Minim
             Rasa Sakit untuk Semua Usia. Nikmati layanan perawatan gigi lengkap
             dari tim dokter ahli yang berpengalaman dan berdedikasi.

@@ -1,55 +1,59 @@
 <template>
   <v-app-bar color="white" elevation="0">
-    <!-- Desktop Layout -->
-    <div class="d-none d-md-flex align-center header-container">
-      <!-- Brand -->
-      <div class="brand-section">
-        <NuxtLink to="/" class="text-decoration-none">
-          <span class="text-h5 font-weight-bold text-primary"
-            >Dental Diary.</span
+    <div class="page-container w-100">
+      <!-- Desktop Layout -->
+      <div class="d-none d-md-flex align-center header-container">
+        <!-- Brand -->
+        <div class="brand-section">
+          <NuxtLink to="/" class="text-decoration-none">
+            <span class="text-h5 font-weight-bold text-primary"
+              >Dental Diary.</span
+            >
+          </NuxtLink>
+        </div>
+
+        <!-- Navigation Links -->
+        <div class="nav-links-section">
+          <v-btn
+            v-for="item in menuItems"
+            :key="item.title"
+            :to="item.to"
+            variant="plain"
+            class="mx-1 text-black hover-effect"
           >
-        </NuxtLink>
+            {{ item.title }}
+          </v-btn>
+        </div>
+
+        <!-- Reserve Button -->
+        <div class="reserve-section">
+          <v-btn
+            color="primary"
+            class="text-white rounded-xl"
+            variant="flat"
+            to="/reserve"
+            elevation="0"
+          >
+            Reservasi <v-icon icon="mdi-arrow-right" />
+          </v-btn>
+        </div>
       </div>
 
-      <!-- Navigation Links -->
-      <div class="nav-links-section">
-        <v-btn
-          v-for="item in menuItems"
-          :key="item.title"
-          :to="item.to"
-          variant="plain"
-          class="mx-1 text-black hover-effect"
-        >
-          {{ item.title }}
-        </v-btn>
-      </div>
+      <!-- Mobile Layout -->
+      <div
+        class="d-flex d-md-none align-center justify-space-between w-100 px-4"
+      >
+        <v-app-bar-title>
+          <NuxtLink to="/" class="text-decoration-none">
+            <span class="text-h5 font-weight-bold text-primary"
+              >Dental Diary.</span
+            >
+          </NuxtLink>
+        </v-app-bar-title>
 
-      <!-- Reserve Button -->
-      <div class="reserve-section">
-        <v-btn
-          color="primary"
-          class="text-white rounded-xl"
-          variant="flat"
-          to="/reserve"
-          elevation="0"
-        >
-          Reservasi <v-icon icon="mdi-arrow-right" />
-        </v-btn>
+        <v-app-bar-nav-icon color="black" @click="drawer = !drawer" />
       </div>
     </div>
-
-    <!-- Mobile Title -->
-    <v-app-bar-title class="d-md-none">
-      <NuxtLink to="/" class="text-decoration-none">
-        <span class="text-h5 font-weight-bold text-primary">Dental Diary.</span>
-      </NuxtLink>
-    </v-app-bar-title>
-
-    <v-app-bar-nav-icon
-      color="black"
-      class="hidden-md-and-up"
-      @click="drawer = !drawer"
-    />
   </v-app-bar>
 
   <!-- Mobile Navigation Drawer -->
@@ -117,6 +121,12 @@ const menuItems = [
 }
 
 /* Header Layout */
+.page-container {
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
 .header-container {
   width: 100%;
   display: flex;
@@ -144,5 +154,30 @@ const menuItems = [
 
 .reserve-section {
   margin-left: 16px;
+}
+
+/* Responsive max-width */
+@media (max-width: 1560px) {
+  .page-container {
+    max-width: 1280px;
+  }
+}
+
+@media (max-width: 1360px) {
+  .page-container {
+    max-width: 1120px;
+  }
+}
+
+@media (max-width: 960px) {
+  .header-container {
+    padding: 0 32px;
+  }
+}
+
+@media (max-width: 600px) {
+  .header-container {
+    padding: 0 16px;
+  }
 }
 </style>
