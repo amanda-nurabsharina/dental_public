@@ -111,21 +111,21 @@ const selectedTestimonial = ref(0);
 const testimonials = [
   {
     name: "Michelle S",
-    avatar: "/images/testimonials/michelle.jpg",
+    avatar: "/images/testimonials/michelle.png",
     rating: 5,
     comment:
       "Harga perawatan sangat terjangkau dengan kualitas premium. Hasil perawatan orthodonti saya sangat memuaskan dalam waktu singkat",
   },
   {
     name: "Jason",
-    avatar: "/images/testimonials/jason.jpg",
+    avatar: "/images/testimonials/michelle.png",
     rating: 5,
     comment:
       "Pelayanan yang sangat memuaskan! Dokter dan staff sangat profesional. Hasil perawatan gigi saya melebihi ekspektasi. Sangat rekomendasi!",
   },
   {
     name: "Yessica Yuliana",
-    avatar: "/images/testimonials/yessica.jpg",
+    avatar: "/images/testimonials/michelle.png",
     rating: 5,
     comment:
       "Fasilitas klinik sangat modern dan bersih. Proses perawatan tidak menyakitkan sama sekali. Tim medis sangat berpengalaman dan ramah",
