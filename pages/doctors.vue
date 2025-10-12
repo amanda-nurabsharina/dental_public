@@ -87,96 +87,96 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, defineAsyncComponent } from "vue";
-import { useHead } from "#imports";
+import { ref, computed, defineAsyncComponent } from 'vue';
+import { useHead } from '#imports';
 
 // Import components
 const DoctorCard = defineAsyncComponent(
-  () => import("../../components/doctors/DoctorCard.vue")
+  () => import('../../components/doctors/DoctorCard.vue')
 );
 
 // Using the same doctor data structure from DoctorsSection
 const doctors = [
   {
     id: 1,
-    name: "drg. Michael Tanoto, Sp.Ort",
+    name: 'drg. Michael Tanoto, Sp.Ort',
     specialist:
-      "Spesialis ortodonti dengan keahlian khusus pada perawatan gigi yang tidak rata",
+      'Spesialis ortodonti dengan keahlian khusus pada perawatan gigi yang tidak rata',
     rating: 4.8,
-    photo: "/images/doctors/michael.png",
-    badge: "Ortodontis",
-    badgeColor: "green-lighten-5",
+    photo: '/images/doctors/michael.png',
+    badge: 'Ortodontis',
+    badgeColor: 'green-lighten-5',
   },
   {
     id: 2,
-    name: "drg. Lisa Permata, Sp.KG",
-    specialist: "Ahli perawatan saluran akar dan rehabilitasi gigi yang rusak",
+    name: 'drg. Lisa Permata, Sp.KG',
+    specialist: 'Ahli perawatan saluran akar dan rehabilitasi gigi yang rusak',
     rating: 4.7,
-    photo: "/images/doctors/michael.png",
-    badge: "Konservasi Gigi",
-    badgeColor: "green-lighten-5",
+    photo: '/images/doctors/michael.png',
+    badge: 'Konservasi Gigi',
+    badgeColor: 'green-lighten-5',
   },
   {
     id: 3,
-    name: "drg. Sarah Wijaya",
+    name: 'drg. Sarah Wijaya',
     specialist:
-      "Dokter gigi umum dengan 10+ tahun pengalaman dalam perawatan gigi keluarga",
+      'Dokter gigi umum dengan 10+ tahun pengalaman dalam perawatan gigi keluarga',
     rating: 4.9,
-    photo: "/images/doctors/michael.png",
-    badge: "Dokter Umum",
-    badgeColor: "green-lighten-5",
+    photo: '/images/doctors/michael.png',
+    badge: 'Dokter Umum',
+    badgeColor: 'green-lighten-5',
   },
   {
     id: 4,
-    name: "drg. Ahmad Rizki, Sp.BM",
-    specialist: "Spesialis bedah mulut untuk pencabutan dan implant gigi",
+    name: 'drg. Ahmad Rizki, Sp.BM',
+    specialist: 'Spesialis bedah mulut untuk pencabutan dan implant gigi',
     rating: 4.8,
-    photo: "/images/doctors/michael.png",
-    badge: "Bedah Mulut",
-    badgeColor: "green-lighten-5",
+    photo: '/images/doctors/michael.png',
+    badge: 'Bedah Mulut',
+    badgeColor: 'green-lighten-5',
   },
   {
     id: 1,
-    name: "drg. Michael Tanoto, Sp.Ort",
+    name: 'drg. Michael Tanoto, Sp.Ort',
     specialist:
-      "Spesialis ortodonti dengan keahlian khusus pada perawatan gigi yang tidak rata",
+      'Spesialis ortodonti dengan keahlian khusus pada perawatan gigi yang tidak rata',
     rating: 4.8,
-    photo: "/images/doctors/michael.png",
-    badge: "Ortodontis",
-    badgeColor: "green-lighten-5",
+    photo: '/images/doctors/michael.png',
+    badge: 'Ortodontis',
+    badgeColor: 'green-lighten-5',
   },
   {
     id: 2,
-    name: "drg. Lisa Permata, Sp.KG",
-    specialist: "Ahli perawatan saluran akar dan rehabilitasi gigi yang rusak",
+    name: 'drg. Lisa Permata, Sp.KG',
+    specialist: 'Ahli perawatan saluran akar dan rehabilitasi gigi yang rusak',
     rating: 4.7,
-    photo: "/images/doctors/michael.png",
-    badge: "Konservasi Gigi",
-    badgeColor: "green-lighten-5",
+    photo: '/images/doctors/michael.png',
+    badge: 'Konservasi Gigi',
+    badgeColor: 'green-lighten-5',
   },
   {
     id: 3,
-    name: "drg. Sarah Wijaya",
+    name: 'drg. Sarah Wijaya',
     specialist:
-      "Dokter gigi umum dengan 10+ tahun pengalaman dalam perawatan gigi keluarga",
+      'Dokter gigi umum dengan 10+ tahun pengalaman dalam perawatan gigi keluarga',
     rating: 4.9,
-    photo: "/images/doctors/michael.png",
-    badge: "Dokter Umum",
-    badgeColor: "green-lighten-5",
+    photo: '/images/doctors/michael.png',
+    badge: 'Dokter Umum',
+    badgeColor: 'green-lighten-5',
   },
   {
     id: 4,
-    name: "drg. Ahmad Rizki, Sp.BM",
-    specialist: "Spesialis bedah mulut untuk pencabutan dan implant gigi",
+    name: 'drg. Ahmad Rizki, Sp.BM',
+    specialist: 'Spesialis bedah mulut untuk pencabutan dan implant gigi',
     rating: 4.8,
-    photo: "/images/doctors/michael.png",
-    badge: "Bedah Mulut",
-    badgeColor: "green-lighten-5",
+    photo: '/images/doctors/michael.png',
+    badge: 'Bedah Mulut',
+    badgeColor: 'green-lighten-5',
   },
 ];
 
 // Search and pagination states
-const searchQuery = ref("");
+const searchQuery = ref('');
 const currentPage = ref(1);
 const itemsPerPage = 8;
 
@@ -215,12 +215,12 @@ const paginatedDoctors = computed(() => {
 
 // Meta
 useHead({
-  title: "Dokter Kami - Dental Reservation",
+  title: 'Dokter Kami - Dental Reservation',
   meta: [
     {
-      name: "description",
+      name: 'description',
       content:
-        "Tim dokter spesialis terpercaya kami siap memberikan pelayanan terbaik untuk kesehatan gigi Anda.",
+        'Tim dokter spesialis terpercaya kami siap memberikan pelayanan terbaik untuk kesehatan gigi Anda.',
     },
   ],
 });
@@ -289,7 +289,7 @@ useHead({
   width: calc(100% + var(--gap));
 }
 
-.doctors-grid > [class*="col-"] {
+.doctors-grid > [class*='col-'] {
   padding: var(--gap) 0 0 var(--gap);
 }
 

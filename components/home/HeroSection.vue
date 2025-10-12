@@ -1,102 +1,43 @@
 <template>
-  <section class="hero-section py-16">
-    <v-container class="pa-0">
-      <v-row align="center">
-        <!-- Left Column: Content -->
-        <v-col cols="12" md="6">
-          <!-- Trust Badge -->
-          <div class="mb-6">
-            <v-chip color="primary-20" class="px-4 py-2" variant="flat">
-              <v-icon
-                start
-                color="primary"
-                icon="mdi-shield-check"
-                class="mr-2"
-              />
-              <span class="text-primary">Pelayanan Kesehatan Terpercaya</span>
-            </v-chip>
-          </div>
-
-          <!-- Main Heading -->
-          <h1 class="text-h3 font-weight-bold mb-6 text-black">
-            Wujudkan Senyum Impian Anda, Bersama Kami
-          </h1>
-
-          <!-- Description -->
-          <p class="text-body-1 mb-8 text-black">
+  <div>
+    <section class="container flex gap-x-10">
+      <div class="max-w-xl">
+        <v-chip color="primary" class="gap-x-2 mb-6" size="large">
+          <template #prepend>
+            <IconHealthcare />
+          </template>
+          <span class="text-base">Pelayanan Kesehatan Terpercaya</span>
+        </v-chip>
+        <div class="flex flex-col gap-y-6">
+          <h1 class="heading-1">Wujudkan Senyum Impian Anda, Bersama Kami</h1>
+          <p>
             Klinik Gigi Modern dengan Perawatan Profesional, Nyaman, dan Minim
             Rasa Sakit untuk Semua Usia. Nikmati layanan perawatan gigi lengkap
             dari tim dokter ahli yang berpengalaman dan berdedikasi.
           </p>
-
-          <!-- CTA Buttons -->
-          <div class="d-flex flex-column flex-md-row" style="gap: 16px">
+          <div class="flex gap-x-4">
             <v-btn
-              color="primary"
-              size="large"
-              to="/reserve"
-              class="px-6 rounded-xl text-capitalize"
-              elevation="0"
+              size="x-large"
+              to="/reservation"
+              style="
+                box-shadow: 4px 15px 100px 0px rgba(0, 146, 69, 0.25) !important;
+              "
+              >Reservasi Konsultasi</v-btn
             >
-              Reservasi Konsultasi
-            </v-btn>
-            <v-btn
-              variant="outlined"
-              color="primary"
-              size="large"
-              to="/services"
-              class="px-6 rounded-xl text-capitalize"
-              elevation="0"
+            <v-btn variant="outlined" size="x-large" to="/services"
+              >Lihat Layanan Kami</v-btn
             >
-              Lihat Layanan Kami
-            </v-btn>
           </div>
-        </v-col>
-
-        <!-- Right Column: Image -->
-        <v-col cols="12" md="6" class="d-flex justify-center">
-          <v-img
-            src="/images/hero-dental-treatment.png"
-            alt="Dental Treatment"
-            class="hero-image rounded-xl"
-            width="100%"
-            max-width="600"
-            cover
-          />
-        </v-col>
-      </v-row>
-    </v-container>
-  </section>
+        </div>
+      </div>
+    </section>
+  </div>
 </template>
 
 <script setup lang="ts">
 defineOptions({
-  name: "HeroSection",
+  name: 'HeroSection',
 });
 </script>
 
-<style scoped>
-.hero-section {
-  background-color: white;
-  min-height: calc(100vh - 64px); /* Subtract header height */
-  display: flex;
-  align-items: center;
-}
-
-.hero-image {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-}
-
-/* Responsive adjustments */
-@media (max-width: 959px) {
-  .hero-section {
-    padding-top: 48px;
-    padding-bottom: 48px;
-    min-height: auto;
-  }
-
-  .hero-image {
-    margin-top: 40px;
-  }
-}
-</style>
+<style scoped></style>

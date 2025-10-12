@@ -1,16 +1,15 @@
 <template>
   <v-app>
-    <Header />
+    <TheHeader />
 
     <v-main>
       <slot />
     </v-main>
 
-    <Footer />
+    <TheFooter />
   </v-app>
 </template>
 
 <script setup lang="ts">
-import Header from "~/components/Header.vue";
-import Footer from "~/components/Footer.vue";
+import Footer from '~/components/Footer.vue';
 </script>

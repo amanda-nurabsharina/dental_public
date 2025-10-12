@@ -18,9 +18,7 @@
 
           <!-- Quick Links -->
           <v-col cols="12" md="2">
-            <h3 class="text-subtitle-1 font-weight-bold mb-6">
-              Tautan Cepat
-            </h3>
+            <h3 class="text-subtitle-1 font-weight-bold mb-6">Tautan Cepat</h3>
             <div class="d-flex flex-column" style="gap: 16px">
               <NuxtLink
                 v-for="(link, index) in quickLinks"
@@ -103,20 +101,20 @@
 
 <script setup lang="ts">
 defineOptions({
-  name: "MainFooter",
+  name: 'MainFooter',
 });
 
 const quickLinks = [
-  { title: "Beranda", to: "/" },
-  { title: "Tentang Klinik", to: "/about" },
-  { title: "Layanan Unggulan", to: "/services" },
-  { title: "Dokter Kami", to: "/doctors" },
+  { title: 'Beranda', to: '/' },
+  { title: 'Tentang Klinik', to: '/about' },
+  { title: 'Layanan Unggulan', to: '/services' },
+  { title: 'Dokter Kami', to: '/doctors' },
 ];
 
 const socialMedia = [
-  { icon: "mdi-instagram", link: "https://instagram.com/dentaldiary" },
-  { icon: "mdi-facebook", link: "https://facebook.com/dentaldiary" },
-  { icon: "mdi-music-note", link: "https://tiktok.com/@dentaldiary" },
+  { icon: 'mdi-instagram', link: 'https://instagram.com/dentaldiary' },
+  { icon: 'mdi-facebook', link: 'https://facebook.com/dentaldiary' },
+  { icon: 'mdi-music-note', link: 'https://tiktok.com/@dentaldiary' },
 ];
 </script>
 
@@ -196,11 +194,11 @@ const socialMedia = [
     margin-bottom: 40px;
   }
 
-  .footer-row > [class*="col-"] {
+  .footer-row > [class*='col-'] {
     margin-bottom: 32px;
   }
 
-  .footer-row > [class*="col-"]:last-child {
+  .footer-row > [class*='col-']:last-child {
     margin-bottom: 0;
   }
 }

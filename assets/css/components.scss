@@ -1,0 +1,21 @@
+// Vuetify SASS variable overrides
+// See https://vuetifyjs.com/en/features/sass-variables/#variable-api
+
+// Only override valid Vuetify SASS variables
+// For component-specific overrides, use CSS in globals.scss instead
+
+// Note: CSS variables from main.css are available here!
+// We can reference them using var(--color-name) syntax
+
+@forward 'vuetify/settings' with (
+  //   $color-pack: false !default,
+  // Use CSS variable for application background instead of hardcoded value
+  //   v-app
+  $application-background: var(--color-white) !default,
+
+  //   v-footer
+  $footer-background: var(--color-background) !default,
+
+  // v-chip
+  $chip-max-width: fit-content !default
+);

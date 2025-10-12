@@ -1,0 +1,353 @@
+@import 'tailwindcss';
+
+@utility container {
+  margin-inline: auto !important;
+  padding-inline: 2rem !important;
+}
+
+@layer base {
+  /* Base HTML & Body Styles - Using Google Fonts */
+  html {
+    font-family: 'Urbanist', ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    font-family: 'Urbanist', ui-sans-serif, system-ui, sans-serif;
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.6;
+    @apply text-grey-900 bg-white;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+  }
+
+  body,
+  html {
+    @apply antialiased text-black !bg-white scheme-light dark:scheme-dark;
+  }
+
+  button {
+    @apply cursor-pointer;
+  }
+}
+
+@theme {
+  --v-theme-background: var(--color-white);
+  --breakpoint-xl: 75rem;
+  --breakpoint-2xl: 75rem;
+  --breakpoint-3xl: 75rem;
+
+  --font-sans: 'Urbanist', ui-sans-serif, system-ui, sans-serif;
+
+  /* Colors from Figma Design System */
+
+  /* Primary Colors */
+  --color-primary: #00813d;
+  --color-primary-20: #e6ffea;
+
+  /* Secondary Colors */
+  --color-secondary-1: #009245;
+  --color-secondary-2: #00a24b;
+
+  /* Base Colors */
+  --color-black: #000000;
+  --color-white: #ffffff;
+  --color-background: #f6f8fa;
+
+  /* Grey Scale */
+  --color-grey-50: #f9fafb;
+  --color-grey-100: #f3f4f6;
+  --color-grey-200: #e5e7eb;
+  --color-grey-300: #d1d5db;
+  --color-grey-400: #9ca3af;
+  --color-grey-500: #6b7280;
+  --color-grey-600: #4b5563;
+  --color-grey-700: #374151;
+  --color-grey-800: #1f2937;
+  --color-grey-900: #111827;
+
+  /* Info Colors */
+  --color-info-50: #e1e9fe;
+  --color-info-100: #67b2e0;
+  --color-info-200: #4ea6db;
+  --color-info-300: #3499d5;
+  --color-info-400: #1b8cd1;
+  --color-info-500: #017fcb;
+  --color-info-600: #017fcb;
+
+  /* Success Colors */
+  --color-success-50: #f2fdf5;
+  --color-success-100: #d3f3df;
+  --color-success-200: #a7e8bf;
+  --color-success-300: #7adc9e;
+  --color-success-400: #4ed17e;
+  --color-success-500: #22c55e;
+  --color-success-600: #16a34a;
+  --color-success-700: #147638;
+  --color-success-800: #0e4f26;
+  --color-success-900: #072713;
+
+  /* Warning Colors */
+  --color-warning-50: #fffbeb;
+  --color-warning-100: #fdecce;
+  --color-warning-200: #fbd89d;
+  --color-warning-300: #f9c56d;
+  --color-warning-400: #f7b13c;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
+  --color-warning-700: #a96e09;
+  --color-warning-800: #623f04;
+  --color-warning-900: #312002;
+
+  /* Danger Colors */
+  --color-danger-50: #fff1f2;
+  --color-danger-100: #fdd9df;
+  --color-danger-200: #fbb2bf;
+  --color-danger-300: #f88c9e;
+  --color-danger-400: #f6657e;
+  --color-danger-500: #f43f5e;
+  --color-danger-600: #e11c48;
+  --color-danger-700: #b4173a;
+  --color-danger-800: #621926;
+  --color-danger-900: #310d13;
+
+  /* Typography Scale - Matching Figma Design System */
+  --font-size-xs: 0.5rem; /* 8px - extra tiny */
+  --font-size-sm: 0.75rem; /* 12px - tiny */
+  --font-size-base: 1rem; /* 16px - regular/base */
+  --font-size-lg: 1.125rem; /* 18px - medium */
+  --font-size-xl: 1.25rem; /* 20px - large */
+  --font-size-2xl: 1.5rem; /* 24px - H5 */
+  --font-size-3xl: 1.75rem; /* 28px - H4 */
+  --font-size-4xl: 2.25rem; /* 36px - H3 */
+  --font-size-5xl: 2.5rem; /* 40px - H2 */
+  --font-size-6xl: 3.5rem; /* 56px - H1 */
+
+  /* Font Weights */
+  --font-weight-light: 300;
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Line Heights */
+  --line-height-tight: 1.25;
+  --line-height-snug: 1.375;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.625;
+  --line-height-loose: 2;
+
+  /* Letter Spacing */
+  --letter-spacing-tighter: -0.05em;
+  --letter-spacing-tight: -0.025em;
+  --letter-spacing-normal: 0em;
+  --letter-spacing-wide: 0.025em;
+  --letter-spacing-wider: 0.05em;
+}
+
+/* Custom Heading Utilities - Matching Figma Design */
+/* Tailwind v4 compatible - Responsive variants work automatically */
+/* Usage: heading-1 sm:heading-2 lg:heading-3 */
+@utility heading-1 {
+  font-size: 3.5rem;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.014em;
+  color: var(--color-grey-900);
+}
+
+@utility heading-2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  color: var(--color-grey-900);
+}
+
+@utility heading-3 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.022em;
+  color: var(--color-grey-900);
+}
+
+@utility heading-4 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: -0.029em;
+  color: var(--color-grey-900);
+}
+
+@utility heading-5 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.56;
+  letter-spacing: -0.033em;
+  color: var(--color-grey-900);
+}
+
+@utility heading-6 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.6;
+  letter-spacing: -0.008em;
+  color: var(--color-grey-900);
+}
+
+/* Text Size Utilities - Matching Figma Text Styles */
+/* Usage: text-regular-normal sm:text-medium-normal lg:text-large-normal */
+
+/* Large Text - 20px with 150% line height */
+@utility text-large-semibold {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+@utility text-large-medium {
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+@utility text-large-normal {
+  font-size: 1.25rem;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+@utility text-large-light {
+  font-size: 1.25rem;
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+/* Medium Text - 18px with 150% line height */
+@utility text-medium-bold {
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+@utility text-medium-medium {
+  font-size: 1.125rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+@utility text-medium-normal {
+  font-size: 1.125rem;
+  font-weight: 400;
+  line-height: 1.5;
+}
+
+@utility text-medium-light {
+  font-size: 1.125rem;
+  font-weight: 300;
+  line-height: 1.5;
+}
+
+/* Regular Text - 16px with 160% line height */
+@utility text-regular-bold {
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+@utility text-regular-medium {
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+@utility text-regular-normal {
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+@utility text-regular-light {
+  font-size: 1rem;
+  font-weight: 300;
+  line-height: 1.6;
+}
+
+/* Small Text - 14px with 160% line height */
+@utility text-small-bold {
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+@utility text-small-medium {
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+@utility text-small-normal {
+  font-size: 0.875rem;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+@utility text-small-light {
+  font-size: 0.875rem;
+  font-weight: 300;
+  line-height: 1.6;
+}
+
+/* Tiny Text - 12px with 160% line height */
+@utility text-tiny-bold {
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+@utility text-tiny-medium {
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+@utility text-tiny-normal {
+  font-size: 0.75rem;
+  font-weight: 400;
+  line-height: 1.6;
+}
+
+@utility text-tiny-light {
+  font-size: 0.75rem;
+  font-weight: 300;
+  line-height: 1.6;
+}
+
+/* Extra Tiny Text - 8px with 160% line height */
+@utility text-xs-bold {
+  font-size: 0.5rem;
+  font-weight: 300;
+  line-height: 1.6;
+}
+
+@utility text-xs-medium {
+  font-size: 0.5rem;
+  font-weight: 300;
+  line-height: 1.6;
+}
+
+@utility text-xs-normal {
+  font-size: 0.5rem;
+  font-weight: 300;
+  line-height: 1.6;
+}
+
+@utility text-xs-light {
+  font-size: 0.5rem;
+  font-weight: 300;
+  line-height: 1.6;
+}

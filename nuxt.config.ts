@@ -1,28 +1,77 @@
+import tailwindcss from '@tailwindcss/vite';
+import { getVuetifyTheme } from './config/design-tokens';
+console.log('🚀 ~ getVuetifyTheme:', getVuetifyTheme());
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  compatibilityDate: "2025-07-15",
+  ssr: false,
+  compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
-  modules: ["@nuxt/eslint", "@nuxt/image", "vuetify-nuxt-module"],
+  modules: [
+    'vuetify-nuxt-module',
+    '@nuxt/eslint', // 'vuetify-nuxt-module',
+    '@nuxt/image',
+    '@nuxtjs/google-fonts',
+  ],
+  css: ['~/assets/css/main.css', '~/assets/css/globals.scss'],
+  vite: {
+    plugins: [tailwindcss()],
+  },
+  googleFonts: {
+    families: {
+      Urbanist: {
+        wght: [300, 400, 500, 600, 700],
+        ital: [300, 400, 500, 600, 700],
+      },
+    },
+    display: 'swap',
+    preload: true,
+    download: true,
+    base64: false,
+  },
   vuetify: {
     moduleOptions: {
       /* module specific options */
+      /* https://www.youtube.com/watch?v=aamWg1TuC3o */
+      disableVuetifyStyles: true,
+      styles: {
+        configFile: 'assets/css/components.scss',
+      },
     },
     vuetifyOptions: {
-      /* vuetify options */
       theme: {
         themes: {
-          light: {
-            dark: false,
-            colors: {
-              white: "#FFFFFF", // #FFFFFF
-              black: "#000000", // #000000
-              primary: "#00813D", // #00813D
-              "primary-20": "#E6FFEA", // #E6FFEA
-              background: "F6F8FA", // #F6F8FA
-            },
-          },
+          // Use centralized design tokens to ensure sync between Tailwind and Vuetify
+          light: getVuetifyTheme(),
+        },
+      },
+      defaults: {
+        // global: {
+        //   ripple: false,
+        // },
+        VBtn: {
+          color: 'primary',
+          variant: 'flat',
+          rounded: 'pill',
+          elevation: 0,
+          style: 'text-transform: none;',
+        },
+        VCard: {
+          elevation: 0,
+          rounded: 'lg',
+        },
+        VTextField: {
+          variant: 'outlined',
+          color: 'primary',
+        },
+        VSelect: {
+          variant: 'outlined',
+          color: 'primary',
         },
       },
     },
+  },
+  features: {
+    inlineStyles: false,
   },
 });
