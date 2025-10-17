@@ -54,7 +54,7 @@ export default defineNuxtConfig({
           variant: 'flat',
           rounded: 'pill',
           elevation: 0,
-          style: 'text-transform: none;',
+          style: 'text-transform: none; letter-spacing: normal;',
         },
         VCard: {
           elevation: 0,

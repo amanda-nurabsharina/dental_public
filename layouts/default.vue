@@ -11,5 +11,5 @@
 </template>
 
 <script setup lang="ts">
-import Footer from '~/components/Footer.vue';
+// Components are auto-imported in Nuxt 3
 </script>

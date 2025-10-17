@@ -1,7 +1,12 @@
 <template>
-  <div class="doctors-page py-8">
+  <div>
+    <BaseBreadcrumb />
+    <div class="container mt-14">
+      <h1>Doctors Page</h1>
+    </div>
+  </div>
+  <!-- <div class="doctors-page py-8">
     <div class="page-container content-wrapper">
-      <!-- Breadcrumb -->
       <div class="breadcrumb mb-8">
         <NuxtLink to="/" class="text-grey-darken-1 text-decoration-none">
           Beranda
@@ -11,13 +16,11 @@
       </div>
 
       <div class="search-section d-flex justify-space-between">
-        <!-- Results Info -->
         <div class="d-flex justify-space-between align-center mb-6">
           <p class="text-grey-darken-1">
             {{ startIndex }} - {{ endIndex }} dari {{ totalDoctors }} hasil
           </p>
         </div>
-        <!-- Search Section -->
         <div class="d-flex align-center mb-8">
           <v-text-field
             v-model="searchQuery"
@@ -43,7 +46,6 @@
         </div>
       </div>
 
-      <!-- Doctors Grid -->
       <div v-if="paginatedDoctors.length > 0">
         <v-row class="doctors-grid">
           <v-col
@@ -58,7 +60,6 @@
           </v-col>
         </v-row>
 
-        <!-- Pagination -->
         <div class="d-flex justify-center mt-8">
           <v-pagination
             v-model="currentPage"
@@ -69,7 +70,6 @@
         </div>
       </div>
 
-      <!-- Empty State -->
       <div v-else class="text-center py-16">
         <v-icon
           icon="mdi-doctor"
@@ -83,17 +83,12 @@
         <p class="text-body-2 text-grey">Coba ubah kata kunci pencarian Anda</p>
       </div>
     </div>
-  </div>
+  </div> -->
 </template>
 
 <script setup lang="ts">
-import { ref, computed, defineAsyncComponent } from 'vue';
+import { ref, computed } from 'vue';
 import { useHead } from '#imports';
-
-// Import components
-const DoctorCard = defineAsyncComponent(
-  () => import('../../components/doctors/DoctorCard.vue')
-);
 
 // Using the same doctor data structure from DoctorsSection
 const doctors = [

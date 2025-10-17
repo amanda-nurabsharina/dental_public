@@ -1,14 +1,27 @@
 <template>
-  <div>
+  <div class="mb-24">
     <div class="mt-32">
       <HomeHeroSection />
     </div>
-    <div class="mt-56">
+    <div class="mt-50">
       <LazyHomeVisionSection />
     </div>
-    <div class="mt-56">
-      <LazyHomeServices />
+    <div class="mt-50">
+      <LazyHomeServicesSection />
     </div>
+    <div class="mt-50">
+      <HomeDoctorSection />
+    </div>
+    <div class="mt-50">
+      <LazyHomePromoSection />
+    </div>
+    <div class="mt-50">
+      <LazyHomeTestimonialSection />
+    </div>
+    <div class="mt-50">
+      <HomeContactSection />
+    </div>
+
     <!-- <div class="landing-page">
       <div class="main-content bg-white">
         <div class="page-container">

@@ -1,63 +1,23 @@
 <template>
   <section class="container">
-    <div class="flex justify-between items-center mb-10">
+    <div class="flex w-full justify-between items-center mb-10">
       <div class="flex flex-col gap-y-6">
-        <v-chip color="primary" size="large">Layanan Unggulan</v-chip>
-        <h2 class="heading-2 cursor-not-allowed">Layanan Perawatan Klinik</h2>
+        <v-chip color="primary" size="large">Promo Terbaru</v-chip>
+        <h2 class="heading-2">Promo Menarik untuk Anda</h2>
       </div>
-      <div class="flex gap-x-4">
-        <v-btn
-          class="!size-16"
-          :class="[!canScrollPrev ? 'cursor-not-allowed' : 'cursor-pointer']"
-          :color="!canScrollPrev ? 'primary-20' : 'secondary-1'"
-          :ripple="canScrollPrev"
-          @click="scrollPrev"
-        >
-          <IconRightArrow size="16" class="rotate-180" />
-        </v-btn>
-
-        <v-btn
-          class="!size-16"
-          :class="[!canScrollNext ? 'cursor-not-allowed' : 'cursor-pointer']"
-          :color="!canScrollNext ? 'primary-20' : 'secondary-1'"
-          :ripple="canScrollNext"
-          @click="scrollNext"
-        >
-          <IconRightArrow size="16" />
-        </v-btn>
-      </div>
+      <v-btn variant="outlined" size="x-large">Lihat Semua Promo</v-btn>
     </div>
-    <div ref="emblaRef" class="embla">
+
+    <div ref="emblaRef" class="promo-carousel embla">
       <div class="embla__viewport">
         <div class="embla__container">
           <div
-            v-for="i in 8"
-            :key="i"
+            v-for="promo in promos"
+            :key="promo.id"
             class="embla__slide !bg-center !bg-cover select-none"
-            style="
-              background-image: url('/images/services/sample-service.png');
-              cursor: grab;
-            "
           >
-            <div
-              class="w-full h-full flex flex-col justify-end p-6"
-              style="
-                background: linear-gradient(
-                  180deg,
-                  rgba(0, 0, 0, 0) 50%,
-                  #000000 100%
-                );
-              "
-            >
-              <div class="text-large-semibold text-white">Scaling Gigi</div>
-              <p class="text-regular-normal text-white">
-                Untuk membersihkan atau menghilangkan karang yang menempel di
-                garis gusi
-              </p>
-            </div>
+            <img :src="promo.image" :alt="promo.title" class="select-none" />
           </div>
-
-          <!-- <div class="embla__slide__number">{{ i }}</div> -->
         </div>
       </div>
 
@@ -75,45 +35,12 @@
   </section>
 </template>
 
-<script setup>
-import { getVuetifyTheme } from '~/config/design-tokens';
+<script setup lang="ts">
 import emblaCarouselVue from 'embla-carousel-vue';
 
 defineOptions({
-  name: 'ServicesSection',
+  name: 'PromoSection',
 });
-
-onMounted(() => {
-  console.log('getVuetifyTheme', getVuetifyTheme());
-});
-
-// const selectedService = ref(0);
-
-const services = [
-  {
-    title: 'Scaling Gigi',
-    description:
-      'Untuk membersihkan atau menghilangkan karang yang menempel di gigi gusi',
-    image: '/images/services/service-teeth-scaling.png',
-  },
-  {
-    title: 'Pasang Behel Gigi',
-    description:
-      'Digunakan untuk memperbaiki posisi gigi yang tidak rata atau tidak sejajar',
-    image: '/images/services/service-teeth-scaling.png',
-  },
-  {
-    title: 'Perawatan Gigi Anak',
-    description: 'Perawatan menyeluruh untuk gigi buah hati anda',
-    image: '/images/services/service-teeth-scaling.png',
-  },
-  {
-    title: 'Bleaching',
-    description:
-      'Bertujuan untuk memutihkan gigi yang mengalami perubahan warna',
-    image: '/images/services/service-teeth-scaling.png',
-  },
-];
 
 const [emblaRef, emblaApi] = emblaCarouselVue({
   loop: false,
@@ -122,20 +49,12 @@ const [emblaRef, emblaApi] = emblaCarouselVue({
 
 // Reactive state
 const selectedIndex = ref(0);
-const scrollSnaps = ref([]);
+const scrollSnaps = ref<number[]>([]);
 const canScrollPrev = ref(false);
 const canScrollNext = ref(true);
 
 // Navigation methods
-const scrollPrev = () => {
-  if (emblaApi.value) emblaApi.value.scrollPrev();
-};
-
-const scrollNext = () => {
-  if (emblaApi.value) emblaApi.value.scrollNext();
-};
-
-const scrollTo = (index) => {
+const scrollTo = (index: number) => {
   if (emblaApi.value) emblaApi.value.scrollTo(index);
 };
 
@@ -153,7 +72,7 @@ onMounted(() => {
   if (!emblaApi.value) return;
 
   // Initialize scroll snaps (for dots)
-  scrollSnaps.value = Array.from(Array(8).keys()); // Match the 8 slides in template
+  scrollSnaps.value = Array.from(Array(promos.length).keys());
 
   // Update initial state
   updateScrollState();
@@ -170,39 +89,58 @@ onUnmounted(() => {
     emblaApi.value.off('reInit', updateScrollState);
   }
 });
+
+const promos = [
+  {
+    id: 'julid-2025',
+    title: 'JULID - Juli Jadi Irit',
+    image: '/images/promos/julid.png',
+    link: '/promos/julid-2025',
+  },
+  {
+    id: 'juleha-2025',
+    title: 'JULEHA - Juli Lebih Hemat',
+    image: '/images/promos/julid.png',
+    link: '/promos/juleha-2025',
+  },
+  {
+    id: 'julehas-2025',
+    title: 'JULEHA - Juli Lebih Hemat',
+    image: '/images/promos/julid.png',
+    link: '/promos/juleha-2025',
+  },
+  {
+    id: 'julehas-2025',
+    title: 'JULEHA - Juli Lebih Hemat',
+    image: '/images/promos/julid.png',
+    link: '/promos/juleha-2025',
+  },
+];
 </script>
 
 <style scoped>
-@reference "~/assets/css/main.css";
-
-.embla {
+.promo-carousel.embla {
   max-width: 100%;
   margin: auto;
 }
-.embla__viewport {
-  /* overflow: hidden; */
+.promo-carousel .embla__viewport {
   width: 100%;
 }
-.embla__container {
-  @apply flex gap-x-10;
+.promo-carousel .embla__container {
+  display: flex;
+  gap: 2.5rem; /* gap-x-10 */
 }
 
-.embla__slide {
-  @apply relative aspect-square min-w-[22rem] h-[22rem] flex  items-end rounded-3xl overflow-hidden;
+.promo-carousel .embla__slide {
+  position: relative;
+  aspect-ratio: 3/2; /* aspect-[3/2] */
+  min-width: 50%; /* min-w-[50%] */
+  border-radius: 2rem; /* rounded-4xl */
+  overflow: hidden;
+  cursor: grab;
 }
-@media (min-width: 750px) {
-  .embla__slide {
-    flex: 0 0 var(--slide-size-sm);
-    padding-left: var(--slide-spacing-sm);
-  }
-}
-@media (min-width: 1200px) {
-  .embla__slide {
-    flex: 0 0 var(--slide-size-lg);
-    padding-left: var(--slide-spacing-lg);
-  }
-}
-.embla__slide__number {
+
+.promo-carousel .embla__slide__number {
   box-shadow: inset 0 0 0 0.2rem var(--detail-medium-contrast);
   border-radius: 1.8rem;
   font-size: 4rem;
@@ -213,20 +151,20 @@ onUnmounted(() => {
   height: var(--slide-height);
   user-select: none;
 }
-.embla__controls {
+.promo-carousel .embla__controls {
   display: grid;
   grid-template-columns: auto 1fr;
   justify-content: space-between;
   gap: 1.2rem;
   margin-top: 1.8rem;
 }
-.embla__buttons {
+.promo-carousel .embla__buttons {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 0.6rem;
   align-items: center;
 }
-.embla__button {
+.promo-carousel .embla__button {
   -webkit-tap-highlight-color: rgba(var(--text-high-contrast-rgb-value), 0.5);
   -webkit-appearance: none;
   appearance: none;
@@ -248,21 +186,21 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
 }
-.embla__button:disabled {
+.promo-carousel .embla__button:disabled {
   color: var(--detail-high-contrast);
 }
-.embla__button__svg {
+.promo-carousel .embla__button__svg {
   width: 35%;
   height: 35%;
 }
-.embla__dots {
+.promo-carousel .embla__dots {
   display: flex;
   flex-wrap: wrap;
   justify-content: flex-end;
   align-items: center;
   margin-right: calc((2.6rem - 1.4rem) / 2 * -1);
 }
-.embla__dot {
+.promo-carousel .embla__dot {
   -webkit-tap-highlight-color: rgba(var(--text-high-contrast-rgb-value), 0.5);
   -webkit-appearance: none;
   appearance: none;
@@ -281,7 +219,7 @@ onUnmounted(() => {
   justify-content: center;
   border-radius: 50%;
 }
-.embla__dot:after {
+.promo-carousel .embla__dot:after {
   box-shadow: inset 0 0 0 0.2rem var(--detail-medium-contrast);
   width: 1.4rem;
   height: 1.4rem;
@@ -290,7 +228,7 @@ onUnmounted(() => {
   align-items: center;
   content: '';
 }
-.embla__dot--selected:after {
+.promo-carousel .embla__dot--selected:after {
   box-shadow: inset 0 0 0 0.2rem var(--text-body);
 }
 </style>
