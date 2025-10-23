@@ -1,6 +1,6 @@
 <template>
   <div class="mb-24">
-    <div class="mt-32">
+    <div class="mt-12 md:mt-32">
       <HomeHeroSection />
     </div>
     <div class="mt-50">

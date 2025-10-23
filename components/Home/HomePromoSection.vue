@@ -1,11 +1,19 @@
 <template>
   <section class="container">
-    <div class="flex w-full justify-between items-center mb-10">
+    <div
+      class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-10 gap-y-10"
+    >
       <div class="flex flex-col gap-y-6">
         <v-chip color="primary" size="large">Promo Terbaru</v-chip>
-        <h2 class="heading-2">Promo Menarik untuk Anda</h2>
+        <h2 class="heading-4 md:heading-2 text-grey-900">
+          Promo Menarik untuk Anda
+        </h2>
       </div>
-      <v-btn variant="outlined" size="x-large">Lihat Semua Promo</v-btn>
+      <div>
+        <v-btn variant="outlined" size="x-large" to="/promo"
+          >Lihat Semua Promo</v-btn
+        >
+      </div>
     </div>
 
     <div ref="emblaRef" class="promo-carousel embla">
@@ -16,7 +24,11 @@
             :key="promo.id"
             class="embla__slide !bg-center !bg-cover select-none"
           >
-            <img :src="promo.image" :alt="promo.title" class="select-none" />
+            <img
+              :src="promo.image"
+              :alt="promo.title"
+              class="select-none w-full h-full object-cover object-center"
+            />
           </div>
         </div>
       </div>
@@ -119,6 +131,8 @@ const promos = [
 </script>
 
 <style scoped>
+@reference 'tailwindcss';
+
 .promo-carousel.embla {
   max-width: 100%;
   margin: auto;
@@ -134,7 +148,7 @@ const promos = [
 .promo-carousel .embla__slide {
   position: relative;
   aspect-ratio: 3/2; /* aspect-[3/2] */
-  min-width: 50%; /* min-w-[50%] */
+  @apply min-w-full md:min-w-2/3 xl:min-w-1/2;
   border-radius: 2rem; /* rounded-4xl */
   overflow: hidden;
   cursor: grab;

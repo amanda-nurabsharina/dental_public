@@ -2,88 +2,53 @@
   <div>
     <BaseBreadcrumb />
     <div class="container mt-14">
-      <h1>Doctors Page</h1>
-    </div>
-  </div>
-  <!-- <div class="doctors-page py-8">
-    <div class="page-container content-wrapper">
-      <div class="breadcrumb mb-8">
-        <NuxtLink to="/" class="text-grey-darken-1 text-decoration-none">
-          Beranda
-        </NuxtLink>
-        <span class="mx-2 text-grey-darken-1">&gt;</span>
-        <span class="text-primary">Dokter</span>
-      </div>
-
-      <div class="search-section d-flex justify-space-between">
-        <div class="d-flex justify-space-between align-center mb-6">
-          <p class="text-grey-darken-1">
-            {{ startIndex }} - {{ endIndex }} dari {{ totalDoctors }} hasil
-          </p>
-        </div>
-        <div class="d-flex align-center mb-8">
+      <h1 class="sr-only">List Dokter</h1>
+      <div class="flex justify-between items-center mb-10">
+        <p class="text-regular-light text-neutral-60">
+          Menampilkan 1-10 of 170 hasil
+        </p>
+        <div class="flex flex-1 gap-x-3.5 justify-end">
           <v-text-field
             v-model="searchQuery"
-            placeholder="Ketikan kata kunci..."
-            variant="outlined"
-            density="comfortable"
+            class="!max-w-[20.5rem] !w-full"
+            placeholder="Ketikan kata kunci mu..."
+            color="grey-200"
+            outlined
+            clearable
             hide-details
-            class="search-input me-4"
             @keyup.enter="handleSearch"
           >
-            <template #append-inner>
-              <v-icon color="grey">mdi-magnify</v-icon>
+            <template #prepend-inner>
+              <IconSearch size="16" class="text-secondary-1" />
             </template>
           </v-text-field>
           <v-btn
-            color="primary"
-            size="large"
-            class="search-button px-8"
+            size="x-large"
+            style="box-shadow: 4px 15px 100px 0px rgba(0, 146, 69, 0.25)"
             @click="handleSearch"
+            >Cari Dokter</v-btn
           >
-            Cari Dokter
-          </v-btn>
         </div>
       </div>
 
-      <div v-if="paginatedDoctors.length > 0">
-        <v-row class="doctors-grid">
-          <v-col
-            v-for="doctor in paginatedDoctors"
-            :key="doctor.id"
-            cols="12"
-            sm="6"
-            md="3"
-            class="d-flex"
-          >
-            <DoctorCard :doctor="doctor" />
-          </v-col>
-        </v-row>
-
-        <div class="d-flex justify-center mt-8">
-          <v-pagination
-            v-model="currentPage"
-            :length="totalPages"
-            :total-visible="7"
-            rounded="lg"
-          />
-        </div>
-      </div>
-
-      <div v-else class="text-center py-16">
-        <v-icon
-          icon="mdi-doctor"
-          size="64"
-          color="grey-lighten-1"
-          class="mb-4"
+      <div class="grid grid-cols-4 gap-10">
+        <DoctorCard
+          v-for="doctor in paginatedDoctors"
+          :key="doctor.id"
+          :doctor="doctor"
         />
-        <h3 class="text-h6 text-grey-darken-1 mb-2">
-          Tidak ada dokter yang ditemukan
-        </h3>
-        <p class="text-body-2 text-grey">Coba ubah kata kunci pencarian Anda</p>
+      </div>
+
+      <div class="mt-10 flex gap-x-3">
+        <v-btn class="!size-16">
+          <IconRightArrow size="16" class="rotate-180" />
+        </v-btn>
+        <v-btn class="!size-16">
+          <IconRightArrow size="16" />
+        </v-btn>
       </div>
     </div>
-  </div> -->
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -267,10 +232,6 @@ useHead({
   border-radius: 12px;
   padding: 16px;
   /* box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); */
-}
-
-.search-input {
-  max-width: 480px;
 }
 
 .search-button {

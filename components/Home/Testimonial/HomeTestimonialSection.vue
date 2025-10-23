@@ -16,9 +16,9 @@
       <div class="embla__viewport">
         <div class="embla__container">
           <div
-            class="embla__slide"
             v-for="testimony in testimonials"
             :key="testimony.name"
+            class="embla__slide"
           >
             <HomeTestimonialCard :testimony="testimony" class="" />
           </div>
@@ -32,11 +32,15 @@
       <v-btn
         class="!size-16"
         :class="[!canScrollPrev ? 'cursor-not-allowed' : 'cursor-pointer']"
-        :color="!canScrollPrev ? 'primary-20' : 'secondary-1'"
+        :color="selectedIndex === 0 ? 'primary-20' : 'secondary-1'"
         :ripple="canScrollPrev"
         @click="scrollPrev"
       >
-        <IconRightArrow size="16" class="rotate-180" />
+        <IconRightArrow
+          size="16"
+          class="rotate-180"
+          :color-class="selectedIndex === 0 ? '!text-primary' : ''"
+        />
       </v-btn>
       <div class="flex grow gap-x-6 items-center">
         <div class="flex gap-x-1.5 grow">
@@ -69,6 +73,7 @@
 
 <script setup lang="ts">
 import emblaCarouselVue from 'embla-carousel-vue';
+import Index from '~/pages/index.vue';
 
 defineOptions({
   name: 'TestimonialsSection',
@@ -179,6 +184,7 @@ const [emblaRef, emblaApi] = emblaCarouselVue({
   loop: true,
   container: '.embla__container',
   slidesToScroll: 1,
+  align: 'start',
 });
 
 // Reactive state
@@ -247,7 +253,7 @@ onUnmounted(() => {
 }
 
 .testimonial-carousel .embla__slide {
-  @apply relative flex-[0_0_calc(100%/3)] pl-10 rounded-4xl select-none overflow-visible cursor-grab;
+  @apply relative flex-[0_0_calc(100%/2)] lg:flex-[0_0_calc(100%/3)] pl-10 rounded-4xl select-none overflow-visible cursor-grab;
 }
 
 .testimonial-carousel .embla__slide__number {

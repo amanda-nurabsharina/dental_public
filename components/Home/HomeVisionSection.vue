@@ -4,7 +4,7 @@
       <v-chip size="x-large" color="primary" class="w-fit"
         >Tentang Klinik</v-chip
       >
-      <h2 class="heading-3 sm:heading-2">Kepercayaan Anda, Prioritas Kami</h2>
+      <h2 class="heading-4 md:heading-2">Kepercayaan Anda, Prioritas Kami</h2>
     </div>
     <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-10">
       <div
@@ -17,10 +17,12 @@
         >
           <component :is="feature.icon" />
         </div>
-        <h3 class="heading-6 sm:heading-5 mb-2 sm:mb-4 text-[#161C2D]">
+        <h3 class="heading-6 md:heading-5 mb-2 sm:mb-4 text-[#161C2D]">
           {{ feature.title }}
         </h3>
-        <p class="text-base text-[#161C2D] opacity-70">
+        <p
+          class="text-small-normal md:text-regular-normal text-[#161C2D] opacity-70"
+        >
           {{ feature.description }}
         </p>
       </div>

@@ -1,9 +1,13 @@
 <template>
   <section class="container">
-    <div class="flex justify-between items-center mb-10">
+    <div
+      class="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-10 gap-y-10"
+    >
       <div class="flex flex-col gap-y-6">
         <v-chip color="primary" size="large">Layanan Unggulan</v-chip>
-        <h2 class="heading-2 cursor-not-allowed">Layanan Perawatan Klinik</h2>
+        <h2 class="heading-4 md:heading-2 cursor-not-allowed">
+          Layanan Perawatan Klinik
+        </h2>
       </div>
       <div class="flex gap-x-4">
         <v-btn
