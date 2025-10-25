@@ -7,6 +7,11 @@ export default defineNuxtConfig({
   ssr: false,
   compatibilityDate: '2025-07-15',
   devtools: { enabled: true },
+  runtimeConfig: {
+    public: {
+      apiBaseUrl: process.env.API_BASE_URL || 'http://localhost:8080/api/v1',
+    },
+  },
   modules: [
     'vuetify-nuxt-module',
     '@nuxt/eslint', // 'vuetify-nuxt-module',

@@ -50,17 +50,26 @@
                 placeholder="Pilih cabang klinik"
                 variant="outlined"
                 :items="cabangKlinikOptions"
+                :loading="isLoadingBranches || isLoading"
+                :disabled="isLoadingBranches || isLoading"
               />
             </div>
 
             <!-- Dokter -->
             <div class="space-y-2">
               <div class="text-regular-medium required">Dokter</div>
-              <v-select
+              <v-autocomplete
                 v-model="form.dokter"
-                placeholder="Pilih dokter"
+                v-model:search="doctorSearchQuery"
+                placeholder="Cari dan pilih dokter"
                 variant="outlined"
                 :items="dokterOptions"
+                :loading="isLoadingDoctors || isLoading"
+                :disabled="isLoading"
+                item-title="title"
+                item-value="value"
+                clearable
+                no-data-text="Tidak ada dokter ditemukan"
               />
             </div>
 
@@ -122,9 +131,11 @@
                 color="primary"
                 size="x-large"
                 class="!glowing-btn-primary"
+                :loading="isSubmitting"
+                :disabled="isSubmitting"
                 @click="submitReservation"
               >
-                Konfirmasi Reservasi
+                {{ isSubmitting ? 'Memproses...' : 'Konfirmasi Reservasi' }}
               </v-btn>
             </div>
           </div>
@@ -134,43 +145,61 @@
   </div>
 </template>
 <script setup lang="ts">
-import { reactive } from 'vue';
+import { reactive, ref, onMounted, computed, watch } from 'vue';
+import type {
+  Branch,
+  Doctor,
+  CreatePublicAppointmentRequest,
+} from '~/composables/useApi';
 
-// Form data
+// Composables
+const { createPublicAppointment } = useAppointments();
+const { fetchBranches } = useBranches();
+const { fetchDoctors } = useDoctors();
+
+// Reactive state
 const form = reactive({
   nama: '',
   noTelepon: '',
-  statusPasien: '',
+  statusPasien: '' as 'married' | 'single' | '',
   cabangKlinik: '',
   dokter: '',
   tanggalKedatangan: '',
   rencanaPerawatan: '',
 });
 
-// Options for select dropdowns
+const isLoading = ref(false);
+const isSubmitting = ref(false);
+const isLoadingDoctors = ref(false);
+const isLoadingBranches = ref(false);
+const branches = ref<Branch[]>([]);
+const doctors = ref<Doctor[]>([]);
+const doctorSearchQuery = ref('');
+
+// Options for status pasien based on backend enum
 const statusPasienOptions = [
-  { title: 'Pasien Baru', value: 'baru' },
-  { title: 'Pasien Lama', value: 'lama' },
+  { title: 'Menikah', value: 'married' },
+  { title: 'Belum Menikah', value: 'single' },
 ];
 
-const cabangKlinikOptions = [
-  { title: 'Cabang Jakarta Pusat', value: 'jakarta-pusat' },
-  { title: 'Cabang Jakarta Selatan', value: 'jakarta-selatan' },
-  { title: 'Cabang Jakarta Utara', value: 'jakarta-utara' },
-  { title: 'Cabang Jakarta Barat', value: 'jakarta-barat' },
-  { title: 'Cabang Jakarta Timur', value: 'jakarta-timur' },
-];
+// Computed options for selects
+const cabangKlinikOptions = computed(() =>
+  branches.value.map((branch) => ({
+    title: branch.name,
+    value: branch.id,
+  }))
+);
 
-const dokterOptions = [
-  { title: 'Dr. Ahmad Santoso, Sp.KG', value: 'dr-ahmad-santoso' },
-  { title: 'Dr. Sari Wijaya, Sp.KGA', value: 'dr-sari-wijaya' },
-  { title: 'Dr. Budi Pratama, Sp.BM', value: 'dr-budi-pratama' },
-  { title: 'Dr. Rina Kusuma, Sp.Ort', value: 'dr-rina-kusuma' },
-  { title: 'Dr. Hendro Setiawan, Sp.KG', value: 'dr-hendro-setiawan' },
-];
+const dokterOptions = computed(() =>
+  doctors.value.map((doctor) => ({
+    title: doctor.user?.profile?.full_name || `Doctor ${doctor.id}`,
+    subtitle: doctor.user?.profile?.specialization || 'Kedokteran Gigi Umum',
+    value: doctor.id,
+  }))
+);
 
-// Submit function
-const submitReservation = () => {
+// Submit function with API integration
+const submitReservation = async () => {
   // Validate required fields
   const requiredFields = [
     'nama',
@@ -180,6 +209,7 @@ const submitReservation = () => {
     'dokter',
     'tanggalKedatangan',
   ];
+
   const emptyFields = requiredFields.filter(
     (field) => !form[field as keyof typeof form]
   );
@@ -189,14 +219,102 @@ const submitReservation = () => {
     return;
   }
 
-  // Process reservation
-  console.log('Form data:', form);
-  alert('Reservasi berhasil dibuat!');
+  isSubmitting.value = true;
 
-  // Reset form after successful submission
-  Object.keys(form).forEach((key) => {
-    form[key as keyof typeof form] = '';
-  });
+  try {
+    // Prepare appointment date in ISO format
+    const appointmentDate = new Date(form.tanggalKedatangan).toISOString();
+
+    const requestData: CreatePublicAppointmentRequest = {
+      doctor_id: form.dokter,
+      clinic_branch_id: form.cabangKlinik,
+      phone_number: form.noTelepon,
+      treatment_plan: form.rencanaPerawatan || '',
+      appointment_date: appointmentDate,
+      name: form.nama,
+      status_patient: form.statusPasien as 'married' | 'single',
+      description: form.rencanaPerawatan || '',
+    };
+
+    console.log('Submitting reservation:', requestData);
+
+    const response = await createPublicAppointment(requestData);
+
+    console.log('Reservation created successfully:', response);
+    alert('Reservasi berhasil dibuat! Kami akan menghubungi Anda segera.');
+
+    // Reset form after successful submission
+    Object.keys(form).forEach((key) => {
+      form[key as keyof typeof form] = '';
+    });
+  } catch (error: unknown) {
+    console.error('Error creating reservation:', error);
+
+    let errorMessage =
+      'Terjadi kesalahan saat membuat reservasi. Silakan coba lagi.';
+
+    if (error && typeof error === 'object' && 'data' in error) {
+      const apiError = error as { data?: { message?: string } };
+      if (apiError.data?.message) {
+        errorMessage = apiError.data.message;
+      }
+    } else if (error instanceof Error && error.message) {
+      errorMessage = error.message;
+    }
+
+    alert(errorMessage);
+  } finally {
+    isSubmitting.value = false;
+  }
 };
+
+// Debounced doctor search function
+const fetchDoctorsWithSearch = async (searchQuery = '') => {
+  isLoadingDoctors.value = true;
+  try {
+    const doctorsData = await fetchDoctors(searchQuery, 1, 50);
+    doctors.value = doctorsData;
+  } catch (error) {
+    console.error('Error fetching doctors:', error);
+  } finally {
+    isLoadingDoctors.value = false;
+  }
+};
+
+const debouncedFetchDoctors = useDebounceFn(fetchDoctorsWithSearch, 300);
+
+// Watch for doctor search query changes
+watch(doctorSearchQuery, (newQuery) => {
+  debouncedFetchDoctors(newQuery);
+});
+
+// Load branches and doctors separately for better UX
+const loadBranches = async () => {
+  isLoadingBranches.value = true;
+  try {
+    const branchesData = await fetchBranches();
+    branches.value = branchesData;
+  } catch (error) {
+    console.error('Error loading branches:', error);
+  } finally {
+    isLoadingBranches.value = false;
+  }
+};
+
+// Load data on component mount
+onMounted(async () => {
+  isLoading.value = true;
+  try {
+    // Load branches and doctors in parallel for better performance
+    await Promise.all([
+      loadBranches(),
+      debouncedFetchDoctors(''),
+    ]);
+  } catch (error) {
+    console.error('Error loading initial data:', error);
+  } finally {
+    isLoading.value = false;
+  }
+});
 </script>
 <style></style>

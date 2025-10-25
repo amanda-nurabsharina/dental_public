@@ -26,7 +26,12 @@
         </v-btn>
       </div>
 
-      <v-btn @click="isOpenSidebar = !isOpenSidebar" variant="text" icon>
+      <v-btn
+        class="block lg:!hidden"
+        variant="text"
+        icon
+        @click="isOpenSidebar = !isOpenSidebar"
+      >
         <IconMenu />
       </v-btn>
     </div>

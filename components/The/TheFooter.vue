@@ -1,7 +1,7 @@
 <template>
   <v-footer class="bg-background">
     <div class="container py-[3.125rem]">
-      <div class="flex justify-between mb-14">
+      <div class="flex flex-col lg:flex-row justify-between mb-14 gap-y-24">
         <div class="flex flex-col gap-y-5 max-w-[33rem]">
           <div class="heading-5">Dental Diary.</div>
           <p class="text-regular-normal">
@@ -9,7 +9,9 @@
             dan pelayanan yang ramah
           </p>
         </div>
-        <div class="flex gap-x-[4.75rem]">
+        <div
+          class="flex justify-between gap-x-2 flex-wrap md:justify-start md:gap-x-[4.75rem]"
+        >
           <div>
             <div class="mb-6 text-medium-medium">Tautan Cepat</div>
             <ul class="space-y-4">

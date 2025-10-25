@@ -31,7 +31,7 @@
             color="primary"
             class="text-white rounded-xl"
             variant="flat"
-            to="/reserve"
+            to="/reservation"
             elevation="0"
           >
             Reservasi <v-icon icon="mdi-arrow-right" />
@@ -69,7 +69,7 @@
         <v-list-item-title>{{ item.title }}</v-list-item-title>
       </v-list-item>
       <v-divider class="my-2" />
-      <v-list-item to="/reserve" class="bg-primary text-white" link>
+      <v-list-item to="/reservation" class="bg-primary text-white" link>
         <v-list-item-title>Reservasi</v-list-item-title>
       </v-list-item>
     </v-list>
@@ -77,21 +77,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref } from 'vue';
 
 defineOptions({
-  name: "MainHeader",
+  name: 'MainHeader',
 });
 
 const drawer = ref(false);
 
 const menuItems = [
-  { title: "Beranda", to: "/" },
-  { title: "Layanan", to: "/services" },
-  { title: "Dokter", to: "/doctors" },
-  { title: "Jadwal", to: "/schedule" },
-  { title: "Testimoni", to: "/reviews" },
-  { title: "Kontak Kami", to: "/contact" },
+  { title: 'Beranda', to: '/' },
+  { title: 'Layanan', to: '/services' },
+  { title: 'Dokter', to: '/doctors' },
+  { title: 'Jadwal', to: '/schedules' },
+  { title: 'Testimoni', to: '/testimonials' },
+  { title: 'Daftar Reservasi', to: '/appointments' },
+  { title: 'Kontak Kami', to: '/contact' },
 ];
 </script>
 
