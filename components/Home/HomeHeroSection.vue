@@ -25,10 +25,7 @@
             <v-btn
               size="x-large"
               to="/reservation"
-              style="
-                box-shadow: 4px 15px 100px 0px rgba(0, 146, 69, 0.25) !important;
-              "
-              class="!text-small-normal md:!text-regular-normal"
+              class="!text-small-normal md:!text-regular-normal !glowing-btn-primary"
               >Reservasi Konsultasi</v-btn
             >
             <v-btn

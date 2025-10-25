@@ -22,9 +22,8 @@
         :length="length"
         rounded="circle"
         :total-visible="6"
-        color="black"
+        color="primary"
         variant="text"
-        active-color="primary"
       >
         <template #prev>
           <v-btn

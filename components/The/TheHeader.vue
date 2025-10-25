@@ -4,7 +4,7 @@
       class="container min-h-[5.625rem] px-4 py-2 flex items-center justify-between"
     >
       <NuxtLink class="heading-5 text-primary" to="/">Dental Diary.</NuxtLink>
-      <div class="flex gap-x-1">
+      <div class="gap-x-1 hidden lg:flex">
         <v-btn
           v-for="link in links"
           :key="link.title"
@@ -18,13 +18,35 @@
         >
       </div>
 
-      <v-btn to="/reservation" size="large">
-        <div class="flex items-center gap-x-2">
-          Reservasi <IconRightArrowSlim />
-        </div>
+      <div class="hidden lg:flex">
+        <v-btn to="/reservation" size="large">
+          <div class="flex items-center gap-x-2">
+            Reservasi <IconRightArrowSlim />
+          </div>
+        </v-btn>
+      </div>
+
+      <v-btn @click="isOpenSidebar = !isOpenSidebar" variant="text" icon>
+        <IconMenu />
       </v-btn>
     </div>
   </header>
+
+  <v-navigation-drawer v-model="isOpenSidebar" location="right" temporary>
+    <div class="gap-x-1 gap-y-3 flex flex-col justify-start text-start p-4">
+      <v-btn
+        v-for="link in links"
+        :key="link.title"
+        variant="plain"
+        :to="link.to"
+        class="text-capitalize !text-medium-normal w-fit"
+        :class="{ '!font-semibold !opacity-100': $route.path === link.to }"
+        color="black"
+        slim
+        >{{ link.title }}</v-btn
+      >
+    </div>
+  </v-navigation-drawer>
 </template>
 <script setup>
 const links = [
@@ -35,4 +57,6 @@ const links = [
   { title: 'Testimoni', to: '/testimonials' },
   { title: 'Kontak Kami', to: '/contact' },
 ];
+
+const isOpenSidebar = ref(false);
 </script>

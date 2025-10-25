@@ -351,3 +351,14 @@
   font-weight: 300;
   line-height: 1.6;
 }
+
+/* Required field indicator */
+.required::after {
+  content: " *";
+  color: red;
+  font-weight: bold;
+}
+
+@utility glowing-btn-primary {
+  box-shadow: 4px 15px 100px 0px rgba(0, 146, 69, 0.25) !important;
+}

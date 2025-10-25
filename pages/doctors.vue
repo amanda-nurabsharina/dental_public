@@ -1,7 +1,7 @@
 <template>
   <div>
     <BaseBreadcrumb />
-    <div class="container mt-14">
+    <div class="container mt-14 mb-16">
       <h1 class="sr-only">List Dokter</h1>
       <div class="flex justify-between items-center mb-10">
         <p class="text-regular-light text-neutral-60">
@@ -31,7 +31,7 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-4 gap-10">
+      <div class="grid grid-cols-4 gap-10 mb-10">
         <DoctorCard
           v-for="doctor in paginatedDoctors"
           :key="doctor.id"
@@ -39,14 +39,45 @@
         />
       </div>
 
-      <div class="mt-10 flex gap-x-3">
-        <v-btn class="!size-16">
-          <IconRightArrow size="16" class="rotate-180" />
-        </v-btn>
-        <v-btn class="!size-16">
-          <IconRightArrow size="16" />
-        </v-btn>
-      </div>
+      <v-pagination
+        v-model="page"
+        :length="length"
+        rounded="circle"
+        :total-visible="6"
+        color="black"
+        variant="text"
+        active-color="primary"
+      >
+        <template #prev>
+          <v-btn
+            class="!size-12"
+            :variant="page === 1 ? 'text' : 'outlined'"
+            :class="[page === 1 ? '!bg-grey-100' : '!border-grey-200']"
+            :ripple="page !== 1"
+            @click="goToPreviousPage"
+          >
+            <IconRightArrowSlim
+              size="16"
+              class="rotate-180"
+              :class="[page === 1 ? 'text-grey-300' : 'text-black']"
+            />
+          </v-btn>
+        </template>
+        <template #next>
+          <v-btn
+            class="!size-12"
+            :variant="page === length ? 'text' : 'outlined'"
+            :class="[page === length ? '!bg-grey-100' : '!border-grey-200']"
+            :ripple="page !== length"
+            @click="goToNextPage"
+          >
+            <IconRightArrowSlim
+              size="16"
+              :color-class="[page === length ? 'text-grey-300' : 'text-black']"
+            />
+          </v-btn>
+        </template>
+      </v-pagination>
     </div>
   </div>
 </template>
@@ -184,6 +215,9 @@ useHead({
     },
   ],
 });
+
+const page = ref(1);
+const length = ref(21);
 </script>
 
 <style scoped>
