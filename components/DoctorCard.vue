@@ -1,10 +1,13 @@
 <template>
-  <div>
+  <div
+    class="cursor-pointer hover:shadow-lg transition-shadow duration-200 p-1 rounded-lg"
+    @click="handleClick"
+  >
     <!-- Use API image if available, otherwise fallback to static -->
     <img
       :src="doctorImageUrl"
       :alt="`Photo of ${doctorName}`"
-      class="mb-4 w-full h-48 object-cover rounded-lg"
+      class="mb-4 w-full h-[24rem] object-cover rounded-lg"
       @error="handleImageError"
     />
     <div class="space-y-2">
@@ -55,6 +58,16 @@ type DoctorType = LegacyDoctor | DoctorContent;
 const props = defineProps<{
   doctor: DoctorType;
 }>();
+
+// Define emits
+const emit = defineEmits<{
+  click: [doctor: DoctorType];
+}>();
+
+// Click handler
+const handleClick = () => {
+  emit('click', props.doctor);
+};
 
 // Use getDoctorImageUrl if available
 const { getDoctorImageUrl } = useDoctors();

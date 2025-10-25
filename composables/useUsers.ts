@@ -1,7 +1,8 @@
 import type { 
   Doctor,
   DoctorContent,
-  DoctorContentListResponse
+  DoctorContentListResponse,
+  AvailableDoctorsResponse
 } from './useApi'
 
 export const useDoctors = () => {
@@ -72,11 +73,45 @@ export const useDoctors = () => {
     return `${API_BASE_URL}/doctorcontent/image/${id}`
   }
 
+  // Get available doctors for a specific date and time
+  const getAvailableDoctors = async (date: string, time?: string, procedureId?: string): Promise<Doctor[]> => {
+    try {
+      const params = new URLSearchParams({ date })
+      if (time) params.append('time', time)
+      if (procedureId) params.append('procedure_id', procedureId)
+      
+      const response = await $fetch<AvailableDoctorsResponse>(`${API_BASE_URL}/doctor-schedule/available-doctors?${params.toString()}`)
+      
+      if (response && !response.error && response.data?.doctors) {
+        // Transform AvailableDoctorInfo to Doctor format for compatibility
+        return response.data.doctors.map((doctorInfo): Doctor => ({
+          id: doctorInfo.user_id,
+          user: {
+            id: doctorInfo.user_id,
+            profile: {
+              full_name: doctorInfo.doctor_name,
+              specialization: '', // Not available in available doctors API
+              phone_number: '',
+              email: '',
+            }
+          }
+        }))
+      }
+      
+      return []
+    } catch (error) {
+      console.error('Error fetching available doctors:', error)
+      // Fallback to regular doctor list if available doctors API fails
+      return fetchDoctors()
+    }
+  }
+
   return {
     fetchDoctors,
     fetchDoctorContents,
     fetchDoctorById,
     getDoctorImageUrl,
+    getAvailableDoctors,
   }
 }
 

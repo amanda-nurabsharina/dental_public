@@ -43,6 +43,20 @@ export interface BranchDropdownResponse {
   data: BranchDropdownItem[]
 }
 
+export interface AvailableDoctorInfo {
+  doctor_info_id: string
+  doctor_name: string
+  user_id: string
+}
+
+export interface AvailableDoctorsResponse {
+  error: boolean
+  message: string
+  data: {
+    doctors: AvailableDoctorInfo[]
+  }
+}
+
 export interface UserProfile {
   id?: string
   full_name: string

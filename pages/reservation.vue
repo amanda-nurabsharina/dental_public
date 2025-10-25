@@ -57,11 +57,23 @@
 
             <!-- Dokter -->
             <div class="space-y-2">
-              <div class="text-regular-medium required">Dokter</div>
+              <div class="text-regular-medium required">
+                Dokter
+                <span
+                  v-if="useAvailableDoctors"
+                  class="text-sm text-green-600 font-normal"
+                >
+                  (Dokter tersedia pada tanggal yang dipilih)
+                </span>
+              </div>
               <v-autocomplete
                 v-model="form.dokter"
                 v-model:search="doctorSearchQuery"
-                placeholder="Cari dan pilih dokter"
+                :placeholder="
+                  useAvailableDoctors
+                    ? 'Pilih dokter yang tersedia'
+                    : 'Cari dan pilih dokter'
+                "
                 variant="outlined"
                 :items="dokterOptions"
                 :loading="isLoadingDoctors || isLoading"
@@ -69,7 +81,11 @@
                 item-title="title"
                 item-value="value"
                 clearable
-                no-data-text="Tidak ada dokter ditemukan"
+                :no-data-text="
+                  useAvailableDoctors
+                    ? 'Tidak ada dokter tersedia pada tanggal/waktu yang dipilih'
+                    : 'Tidak ada dokter ditemukan'
+                "
               />
             </div>
 
@@ -83,6 +99,33 @@
                 :rounded="8"
               />
             </div>
+
+            <!-- Waktu Kedatangan (Optional) -->
+            <!-- <div class="space-y-2">
+              <div class="text-regular-medium">Waktu Kedatangan (Opsional)</div>
+              <v-text-field
+                v-model="selectedTime"
+                type="time"
+                variant="outlined"
+                :rounded="8"
+                placeholder="Pilih waktu untuk melihat dokter yang tersedia"
+                hint="Pilih waktu untuk melihat dokter yang tersedia pada jam tersebut"
+              />
+              <div v-if="form.tanggalKedatangan" class="text-sm text-gray-600">
+                <v-switch
+                  v-model="useAvailableDoctors"
+                  color="primary"
+                  :label="
+                    useAvailableDoctors
+                      ? 'Tampilkan dokter yang tersedia saja'
+                      : 'Tampilkan semua dokter'
+                  "
+                  density="compact"
+                  hide-details
+                  @update:model-value="debouncedFetchDoctors(doctorSearchQuery)"
+                />
+              </div>
+            </div> -->
 
             <div
               class="col-span-full p-6 rounded-2xl flex flex-col md:flex-row w-full gap-6 border border-grey-200 mb-7"
@@ -155,7 +198,7 @@ import type {
 // Composables
 const { createPublicAppointment } = useAppointments();
 const { fetchBranches } = useBranches();
-const { fetchDoctors } = useDoctors();
+const { fetchDoctors, getAvailableDoctors } = useDoctors();
 
 // Reactive state
 const form = reactive({
@@ -175,6 +218,8 @@ const isLoadingBranches = ref(false);
 const branches = ref<Branch[]>([]);
 const doctors = ref<Doctor[]>([]);
 const doctorSearchQuery = ref('');
+const useAvailableDoctors = ref(false);
+const selectedTime = ref('');
 
 // Options for status pasien based on backend enum
 const statusPasienOptions = [
@@ -193,7 +238,11 @@ const cabangKlinikOptions = computed(() =>
 const dokterOptions = computed(() =>
   doctors.value.map((doctor) => ({
     title: doctor.user?.profile?.full_name || `Doctor ${doctor.id}`,
-    subtitle: doctor.user?.profile?.specialization || 'Kedokteran Gigi Umum',
+    subtitle: useAvailableDoctors.value
+      ? `${
+          doctor.user?.profile?.specialization || 'Kedokteran Gigi Umum'
+        } - Tersedia pada tanggal ini`
+      : doctor.user?.profile?.specialization || 'Kedokteran Gigi Umum',
     value: doctor.id,
   }))
 );
@@ -272,7 +321,26 @@ const submitReservation = async () => {
 const fetchDoctorsWithSearch = async (searchQuery = '') => {
   isLoadingDoctors.value = true;
   try {
-    const doctorsData = await fetchDoctors(searchQuery, 1, 50);
+    let doctorsData: Doctor[];
+
+    // Use available doctors if date is selected and we have a date
+    if (useAvailableDoctors.value && form.tanggalKedatangan) {
+      doctorsData = await getAvailableDoctors(
+        form.tanggalKedatangan,
+        selectedTime.value
+      );
+      // Filter by search query if provided
+      if (searchQuery) {
+        const searchLower = searchQuery.toLowerCase();
+        doctorsData = doctorsData.filter((doctor) =>
+          doctor.user?.profile?.full_name?.toLowerCase().includes(searchLower)
+        );
+      }
+    } else {
+      // Fallback to regular search
+      doctorsData = await fetchDoctors(searchQuery, 1, 50);
+    }
+
     doctors.value = doctorsData;
   } catch (error) {
     console.error('Error fetching doctors:', error);
@@ -283,9 +351,36 @@ const fetchDoctorsWithSearch = async (searchQuery = '') => {
 
 const debouncedFetchDoctors = useDebounceFn(fetchDoctorsWithSearch, 300);
 
+// Fetch available doctors when date changes
+const fetchAvailableDoctorsForDate = async () => {
+  if (!form.tanggalKedatangan) {
+    useAvailableDoctors.value = false;
+    return;
+  }
+
+  useAvailableDoctors.value = true;
+  form.dokter = ''; // Clear selected doctor when date changes
+  await debouncedFetchDoctors(doctorSearchQuery.value);
+};
+
 // Watch for doctor search query changes
 watch(doctorSearchQuery, (newQuery) => {
   debouncedFetchDoctors(newQuery);
+});
+
+// Watch for date changes to fetch available doctors
+watch(
+  () => form.tanggalKedatangan,
+  () => {
+    fetchAvailableDoctorsForDate();
+  }
+);
+
+// Watch for time changes to refetch available doctors
+watch(selectedTime, () => {
+  if (form.tanggalKedatangan) {
+    fetchAvailableDoctorsForDate();
+  }
 });
 
 // Load branches and doctors separately for better UX
@@ -306,10 +401,7 @@ onMounted(async () => {
   isLoading.value = true;
   try {
     // Load branches and doctors in parallel for better performance
-    await Promise.all([
-      loadBranches(),
-      debouncedFetchDoctors(''),
-    ]);
+    await Promise.all([loadBranches(), debouncedFetchDoctors('')]);
   } catch (error) {
     console.error('Error loading initial data:', error);
   } finally {

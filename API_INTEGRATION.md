@@ -130,6 +130,23 @@ interface BranchDropdownResponse {
 }
 ```
 
+### AvailableDoctors (Schedule API)
+```typescript
+interface AvailableDoctorInfo {
+  doctor_info_id: string
+  doctor_name: string
+  user_id: string
+}
+
+interface AvailableDoctorsResponse {
+  error: boolean
+  message: string
+  data: {
+    doctors: AvailableDoctorInfo[]
+  }
+}
+```
+
 ## Composables
 
 ### useAppointments()
@@ -191,6 +208,7 @@ Enhanced doctor management with the new doctor-content API:
 - `fetchDoctorContents(search?, page?, limit?)` - Get full doctor content data with schedules
 - `fetchDoctorById(id)` - Get single doctor content by ID
 - `getDoctorImageUrl(id)` - Get doctor image URL
+- `getAvailableDoctors(date, time?, procedureId?)` - Get doctors available on specific date/time
 
 #### Usage Examples:
 
@@ -211,12 +229,17 @@ const doctor = await fetchDoctorById('doctor-id')
 // Display doctor image
 const { getDoctorImageUrl } = useDoctors()
 const imageUrl = getDoctorImageUrl('doctor-id')
+
+// Get available doctors for a specific date and time
+const { getAvailableDoctors } = useDoctors()
+const availableDoctors = await getAvailableDoctors('2024-12-25', '10:00', 'procedure-id')
 ```
 
 #### API Endpoints Used:
 - `GET /doctorcontent?search=&page=&limit=` - List doctors with search and pagination
 - `GET /doctorcontent/:id` - Get doctor by ID
 - `GET /doctorcontent/image/:id` - Get doctor image
+- `GET /doctor-schedule/available?date=&time=&procedure_id=` - Get available doctors for date/time
 
 #### Data Transformation:
 The `fetchDoctors()` method transforms the API `DoctorContent` format to the legacy `Doctor` format for backward compatibility:

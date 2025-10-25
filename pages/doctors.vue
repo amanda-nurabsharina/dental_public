@@ -3,14 +3,16 @@
     <BaseBreadcrumb />
     <div class="container mt-14 mb-16">
       <h1 class="sr-only">List Dokter</h1>
-      <div class="flex justify-between items-center mb-10">
+      <div
+        class="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-10"
+      >
         <p class="text-regular-light text-neutral-60">
           Menampilkan 1-10 of 170 hasil
         </p>
-        <div class="flex flex-1 gap-x-3.5 justify-end">
+        <div class="flex w-full flex-1 gap-x-3.5 lg:justify-end grow">
           <v-text-field
             v-model="searchQuery"
-            class="!max-w-[20.5rem] !w-full"
+            class="lg:!max-w-[20.5rem] !w-full !flex-1"
             placeholder="Ketikan kata kunci mu..."
             color="grey-200"
             outlined
@@ -31,11 +33,14 @@
         </div>
       </div>
 
-      <div class="grid grid-cols-4 gap-10 mb-10">
+      <div
+        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10 mb-10"
+      >
         <DoctorCard
           v-for="doctor in paginatedDoctors"
           :key="doctor.id"
           :doctor="doctor"
+          @click="handleDoctorClick"
         />
       </div>
 
@@ -73,18 +78,105 @@
           >
             <IconRightArrowSlim
               size="16"
-              :color-class="[page === length ? 'text-grey-300' : 'text-black']"
+              :color-class="page === length ? 'text-grey-300' : 'text-black'"
             />
           </v-btn>
         </template>
       </v-pagination>
     </div>
+
+    <!-- Doctor Details Modal -->
+    <v-dialog v-model="showDoctorModal" max-width="822">
+      <div
+        v-if="selectedDoctor"
+        class="rounded-xl overflow-auto !bg-white p-6 md:py-11 md:px-14"
+      >
+        <div class="flex flex-col md:flex-row gap-8">
+          <div
+            class="min-w-[16.625rem] min-h-[23.5rem] rounded-2xl overflow-hidden"
+          >
+            <img
+              :src="modalDoctorPhoto"
+              :alt="modalDoctorName"
+              class="w-full h-full object-cover object-center"
+            />
+          </div>
+          <div class="space-y-6">
+            <div class="space-y-2">
+              <div class="text-regular-bold text-primary">
+                {{ modalDoctorBadge }}
+              </div>
+              <div class="heading-5">
+                {{ modalDoctorName }}
+              </div>
+              <p class="text-regular-normal">
+                Ahli perawatan saluran akar dan estetik dental dengan pendekatan
+                minimal invasive terkini.
+              </p>
+              <div class="flex gap-x-2 items-center">
+                <IconStar />
+                <span class="text-regular-normal">
+                  {{ modalDoctorRating }}
+                </span>
+              </div>
+            </div>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900">
+                  Jadwal Praktek
+                </h3>
+                <v-chip
+                  color="red"
+                  variant="tonal"
+                  size="small"
+                  class="font-semibold text-red-700"
+                >
+                  Tidak Tersedia
+                </v-chip>
+              </div>
+
+              <!-- Schedule Items -->
+              <div class="space-y-2">
+                <div class="flex justify-between items-center py-2">
+                  <span class="text-gray-700">Senin - Sabtu</span>
+                  <span class="font-semibold text-green-600"
+                    >08:00 - 12:00</span
+                  >
+                </div>
+                <div class="flex justify-between items-center py-2">
+                  <span class="text-gray-700">Minggu</span>
+                  <span class="font-semibold text-green-600"
+                    >18:00 - 22:00</span
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </v-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { useHead } from '#imports';
+import IconStar from '@/components/Icon/IconStar.vue';
+import type { DoctorContent } from '~/composables/useApi';
+
+// Support both legacy static doctor data and new API data
+interface LegacyDoctor {
+  id: number;
+  name: string;
+  specialist: string;
+  rating: number;
+  photo: string;
+  badge: string;
+  badgeColor: string;
+}
+
+// Union type for backward compatibility
+type DoctorType = LegacyDoctor | DoctorContent;
 
 // Using the same doctor data structure from DoctorsSection
 const doctors = [
@@ -171,9 +263,88 @@ const searchQuery = ref('');
 const currentPage = ref(1);
 const itemsPerPage = 8;
 
+// Modal states
+const showDoctorModal = ref(false);
+const selectedDoctor = ref<DoctorType | null>(null);
+
 // Search handler
 const handleSearch = () => {
   currentPage.value = 1; // Reset to first page on new search
+};
+
+// Modal handlers
+const handleDoctorClick = (doctor: DoctorType) => {
+  selectedDoctor.value = doctor;
+  showDoctorModal.value = true;
+};
+
+const closeDoctorModal = () => {
+  showDoctorModal.value = false;
+  selectedDoctor.value = null;
+};
+
+// Computed properties for handling both doctor types
+const modalDoctorName = computed(() => {
+  if (!selectedDoctor.value) return '';
+  // Check if it's LegacyDoctor (has 'name' property)
+  if ('name' in selectedDoctor.value) {
+    return selectedDoctor.value.name;
+  }
+  // It's DoctorContent (has 'doctor_name' property)
+  return selectedDoctor.value.doctor_name;
+});
+
+const modalDoctorSpecialist = computed(() => {
+  if (!selectedDoctor.value) return '';
+  // Check if it's LegacyDoctor (has 'specialist' property)
+  if ('specialist' in selectedDoctor.value) {
+    return selectedDoctor.value.specialist;
+  }
+  // It's DoctorContent (has 'description' property)
+  return selectedDoctor.value.description;
+});
+
+const modalDoctorPhoto = computed(() => {
+  if (!selectedDoctor.value) return '/images/doctors/doctor2.png';
+  // Check if it's LegacyDoctor (has 'photo' property)
+  if ('photo' in selectedDoctor.value) {
+    return selectedDoctor.value.photo;
+  }
+  // It's DoctorContent - use default for now
+  return '/images/doctors/doctor2.png';
+});
+
+const modalDoctorBadge = computed(() => {
+  if (!selectedDoctor.value) return 'Dokter Gigi';
+  // Check if it's LegacyDoctor (has 'badge' property)
+  if ('badge' in selectedDoctor.value) {
+    return selectedDoctor.value.badge;
+  }
+  // It's DoctorContent - use title or default
+  return selectedDoctor.value.title || 'Dokter Gigi';
+});
+
+const modalDoctorRating = computed(() => {
+  if (!selectedDoctor.value) return null;
+  // Check if it's LegacyDoctor (has 'rating' property)
+  if ('rating' in selectedDoctor.value) {
+    return selectedDoctor.value.rating;
+  }
+  // It's DoctorContent - no rating available
+  return null;
+});
+
+// Pagination handlers
+const goToPreviousPage = () => {
+  if (currentPage.value > 1) {
+    currentPage.value--;
+  }
+};
+
+const goToNextPage = () => {
+  if (currentPage.value < totalPages.value) {
+    currentPage.value++;
+  }
 };
 
 // Computed properties for filtered and paginated data
@@ -188,14 +359,8 @@ const filteredDoctors = computed(() => {
   });
 });
 
-const totalDoctors = computed(() => filteredDoctors.value.length);
 const totalPages = computed(() =>
   Math.ceil(filteredDoctors.value.length / itemsPerPage)
-);
-
-const startIndex = computed(() => (currentPage.value - 1) * itemsPerPage + 1);
-const endIndex = computed(() =>
-  Math.min(currentPage.value * itemsPerPage, totalDoctors.value)
 );
 
 const paginatedDoctors = computed(() => {

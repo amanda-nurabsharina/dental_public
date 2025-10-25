@@ -1,6 +1,5 @@
 import tailwindcss from '@tailwindcss/vite';
 import { getVuetifyTheme } from './config/design-tokens';
-console.log('🚀 ~ getVuetifyTheme:', getVuetifyTheme());
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
