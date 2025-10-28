@@ -1,36 +1,41 @@
 <template>
   <div
-    class="cursor-pointer hover:shadow-lg transition-shadow duration-200 p-1 rounded-lg"
-    @click="handleClick"
+    class="group cursor-pointer hover:-translate-y-1 transition-transform duration-200"
   >
-    <!-- Use API image if available, otherwise fallback to static -->
-    <img
-      :src="doctorImageUrl"
-      :alt="`Photo of ${doctorName}`"
-      class="mb-4 w-full h-[24rem] object-cover rounded-lg"
-      @error="handleImageError"
-    />
-    <div class="space-y-2">
-      <small class="text-regular-bold text-secondary-2">{{
-        doctorBadge
-      }}</small>
-      <div class="heading-6 lg:heading-5 text-[#161C2D]">{{ doctorName }}</div>
-      <p class="text-small-normal lg:text-regular-normal">
-        {{ doctorSpecialist }}
-      </p>
-      <div v-if="doctorRating" class="flex gap-x-2 items-center">
-        <IconStar />
-        <span class="text-grey-600 text-regular-medium">{{
-          doctorRating
-        }}</span>
+    <div class="rounded-lg p-1" @click="handleClick">
+      <!-- Use API image if available, otherwise fallback to static -->
+      <div class="h-[24rem] w-full mb-4 overflow-hidden rounded-lg">
+        <img
+          :src="doctorImageUrl"
+          :alt="`Photo of ${doctorName}`"
+          class="h-full w-full rounded-lg object-cover group-hover:scale-110 transition-transform duration-500"
+          @error="handleImageError"
+        />
       </div>
-      <!-- Show doctor credentials if available from API -->
-      <div v-if="doctorCredentials" class="space-y-1">
-        <div v-if="doctorCredentials.ihs_number" class="text-xs text-gray-600">
-          IHS: {{ doctorCredentials.ihs_number }}
+      <div class="space-y-2">
+        <small class="text-regular-bold text-secondary-2">{{
+          doctorBadge
+        }}</small>
+        <div class="heading-6 lg:heading-5 text-[#161C2D]">
+          {{ doctorName }}
         </div>
-        <div v-if="doctorCredentials.str_number" class="text-xs text-gray-600">
-          STR: {{ doctorCredentials.str_number }}
+        <p class="text-small-normal lg:text-regular-normal">
+          {{ doctorSpecialist }}
+        </p>
+        <div v-if="doctorRating" class="flex items-center gap-x-2">
+          <IconStar />
+          <span class="text-grey-600 text-regular-medium">
+            {{ doctorRating }}
+          </span>
+        </div>
+        <!-- Show doctor credentials if available from API -->
+        <div v-if="doctorCredentials" class="space-y-1 text-xs text-gray-600">
+          <div v-if="doctorCredentials.ihs_number">
+            IHS: {{ doctorCredentials.ihs_number }}
+          </div>
+          <div v-if="doctorCredentials.str_number">
+            STR: {{ doctorCredentials.str_number }}
+          </div>
         </div>
       </div>
     </div>
@@ -74,7 +79,6 @@ const { getDoctorImageUrl } = useDoctors();
 
 const imageError = ref(false);
 const fallbackImage = '/images/doctors/doctor2.png';
-
 // Computed properties to handle both data formats
 const doctorName = computed(() => {
   if ('name' in props.doctor) {
