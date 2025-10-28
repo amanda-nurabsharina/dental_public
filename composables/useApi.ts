@@ -139,3 +139,14 @@ export interface PublicAppointmentListResponse {
   appointments: PublicAppointment[]
   pagination: PaginationInfo
 }
+
+export interface DoctorDropdownItem {
+  id: string
+  username: string
+}
+
+export interface DoctorDropdownResponse {
+  data?: DoctorDropdownItem[]
+  message?: string
+  success?: boolean
+}

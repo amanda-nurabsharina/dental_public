@@ -198,7 +198,7 @@ import type {
 // Composables
 const { createPublicAppointment } = useAppointments();
 const { fetchBranches } = useBranches();
-const { fetchDoctors, getAvailableDoctors } = useDoctors();
+const { getAvailableDoctors, fetchDoctorsForDropdown } = useDoctors();
 
 // Reactive state
 const form = reactive({
@@ -337,8 +337,16 @@ const fetchDoctorsWithSearch = async (searchQuery = '') => {
         );
       }
     } else {
-      // Fallback to regular search
-      doctorsData = await fetchDoctors(searchQuery, 1, 50);
+      // Use the new dropdown endpoint for better performance
+      doctorsData = await fetchDoctorsForDropdown();
+      
+      // Filter by search query if provided
+      if (searchQuery) {
+        const searchLower = searchQuery.toLowerCase();
+        doctorsData = doctorsData.filter((doctor) =>
+          doctor.user?.profile?.full_name?.toLowerCase().includes(searchLower)
+        );
+      }
     }
 
     doctors.value = doctorsData;

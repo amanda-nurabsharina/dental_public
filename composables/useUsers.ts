@@ -2,7 +2,8 @@ import type {
   Doctor,
   DoctorContent,
   DoctorContentListResponse,
-  AvailableDoctorsResponse
+  AvailableDoctorsResponse,
+  DoctorDropdownItem
 } from './useApi'
 
 export const useDoctors = () => {
@@ -106,12 +107,38 @@ export const useDoctors = () => {
     }
   }
 
+  // Fetch doctors from the public appointment dropdown endpoint
+  const fetchDoctorsForDropdown = async (): Promise<Doctor[]> => {
+    try {
+      const response = await $fetch<DoctorDropdownItem[]>(`${API_BASE_URL}/publicappointment/doctors/dropdown`)
+      
+      // Transform DoctorDropdownItem to Doctor format for compatibility
+      return response.map((doctor): Doctor => ({
+        id: doctor.id,
+        user: {
+          id: doctor.id,
+          profile: {
+            full_name: doctor.username,
+            specialization: 'Dokter Gigi', // Default specialization since not provided by the endpoint
+            phone_number: '',
+            email: '',
+          }
+        }
+      }))
+    } catch (error) {
+      console.error('Error fetching doctors for dropdown:', error)
+      // Fallback to the regular fetchDoctors if this endpoint fails
+      return fetchDoctors()
+    }
+  }
+
   return {
     fetchDoctors,
     fetchDoctorContents,
     fetchDoctorById,
     getDoctorImageUrl,
     getAvailableDoctors,
+    fetchDoctorsForDropdown,
   }
 }
 

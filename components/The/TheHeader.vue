@@ -58,9 +58,9 @@ const links = [
   { title: 'Beranda', to: '/' },
   { title: 'Layanan', to: '/services' },
   { title: 'Dokter', to: '/doctors' },
-  { title: 'Jadwal', to: '/schedules' },
-  { title: 'Testimoni', to: '/testimonials' },
-  { title: 'Kontak Kami', to: '/contact' },
+  //{ title: 'Jadwal', to: '/schedules' },
+  //{ title: 'Testimoni', to: '/testimonials' },
+  //{ title: 'Kontak Kami', to: '/contact' },
 ];
 
 const isOpenSidebar = ref(false);
