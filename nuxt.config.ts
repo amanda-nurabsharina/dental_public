@@ -14,6 +14,7 @@ export default defineNuxtConfig({
   modules: [
     'vuetify-nuxt-module',
     '@nuxt/eslint', // 'vuetify-nuxt-module',
+    '@vee-validate/nuxt',
     '@nuxt/image',
     '@nuxtjs/google-fonts',
   ],

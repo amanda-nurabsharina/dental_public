@@ -143,10 +143,22 @@ export interface PublicAppointmentListResponse {
 export interface DoctorDropdownItem {
   id: string
   username: string
+  email?: string
+  role?: string
+  is_active?: boolean
+  is_whatsapp_active?: boolean
+  created_at?: string
+  updated_at?: string
 }
 
 export interface DoctorDropdownResponse {
   data?: DoctorDropdownItem[]
   message?: string
   success?: boolean
+}
+
+export interface DoctorDropdownByDateResponse {
+  date: string
+  day: string
+  doctors: DoctorDropdownItem[]
 }

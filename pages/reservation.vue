@@ -14,9 +14,10 @@
             <div class="space-y-2">
               <div class="text-regular-medium required">Nama</div>
               <v-text-field
-                v-model="form.nama"
+                v-model="nama"
                 placeholder="Masukkan nama"
                 variant="outlined"
+                :error-messages="errors.nama ? [errors.nama] : []"
               />
             </div>
 
@@ -24,10 +25,11 @@
             <div class="space-y-2">
               <div class="text-regular-medium required">No Telepon</div>
               <v-text-field
-                v-model="form.noTelepon"
+                v-model="noTelepon"
                 placeholder="Masukkan nomor telepon"
                 variant="outlined"
                 type="tel"
+                :error-messages="errors.noTelepon ? [errors.noTelepon] : []"
               />
             </div>
 
@@ -35,10 +37,11 @@
             <div class="space-y-2">
               <div class="text-regular-medium required">Status Pasien</div>
               <v-select
-                v-model="form.statusPasien"
+                v-model="statusPasien"
                 placeholder="Pilih status pasien"
                 variant="outlined"
                 :items="statusPasienOptions"
+                :error-messages="errors.statusPasien ? [errors.statusPasien] : []"
               />
             </div>
 
@@ -46,12 +49,27 @@
             <div class="space-y-2">
               <div class="text-regular-medium required">Cabang Klinik</div>
               <v-select
-                v-model="form.cabangKlinik"
+                v-model="cabangKlinik"
                 placeholder="Pilih cabang klinik"
                 variant="outlined"
                 :items="cabangKlinikOptions"
                 :loading="isLoadingBranches || isLoading"
                 :disabled="isLoadingBranches || isLoading"
+                :error-messages="errors.cabangKlinik ? [errors.cabangKlinik] : []"
+              />
+            </div>
+
+            <!-- Tanggal Kedatangan -->
+            <div class="space-y-2">
+              <div class="text-regular-medium required">Tanggal Kedatangan</div>
+              <v-text-field
+                v-model="tanggalKedatangan"
+                type="date"
+                variant="outlined"
+                :rounded="8"
+                :error-messages="
+                  errors.tanggalKedatangan ? [errors.tanggalKedatangan] : []
+                "
               />
             </div>
 
@@ -60,14 +78,14 @@
               <div class="text-regular-medium required">
                 Dokter
                 <span
-                  v-if="useAvailableDoctors"
+                  v-if="availableDoctorHint"
                   class="text-sm text-green-600 font-normal"
                 >
-                  (Dokter tersedia pada tanggal yang dipilih)
+                  ({{ availableDoctorHint }})
                 </span>
               </div>
               <v-autocomplete
-                v-model="form.dokter"
+                v-model="dokter"
                 v-model:search="doctorSearchQuery"
                 :placeholder="
                   useAvailableDoctors
@@ -86,85 +104,23 @@
                     ? 'Tidak ada dokter tersedia pada tanggal/waktu yang dipilih'
                     : 'Tidak ada dokter ditemukan'
                 "
+                :error-messages="errors.dokter ? [errors.dokter] : []"
               />
             </div>
 
-            <!-- Tanggal Kedatangan -->
-            <div class="space-y-2">
-              <div class="text-regular-medium required">Tanggal Kedatangan</div>
-              <v-text-field
-                v-model="form.tanggalKedatangan"
-                type="date"
-                variant="outlined"
-                :rounded="8"
-              />
-            </div>
-
-            <!-- Waktu Kedatangan (Optional) -->
-            <!-- <div class="space-y-2">
-              <div class="text-regular-medium">Waktu Kedatangan (Opsional)</div>
-              <v-text-field
-                v-model="selectedTime"
-                type="time"
-                variant="outlined"
-                :rounded="8"
-                placeholder="Pilih waktu untuk melihat dokter yang tersedia"
-                hint="Pilih waktu untuk melihat dokter yang tersedia pada jam tersebut"
-              />
-              <div v-if="form.tanggalKedatangan" class="text-sm text-gray-600">
-                <v-switch
-                  v-model="useAvailableDoctors"
-                  color="primary"
-                  :label="
-                    useAvailableDoctors
-                      ? 'Tampilkan dokter yang tersedia saja'
-                      : 'Tampilkan semua dokter'
-                  "
-                  density="compact"
-                  hide-details
-                  @update:model-value="debouncedFetchDoctors(doctorSearchQuery)"
-                />
-              </div>
-            </div> -->
-
-            <div
-              class="col-span-full p-6 rounded-2xl flex flex-col md:flex-row w-full gap-6 border border-grey-200 mb-7"
-            >
-              <div
-                class="md:max-w-[8.125rem] w-full h-auto max-h-[20.5rem] rounded-[1.25rem] overflow-hidden"
-              >
-                <img
-                  src="/images/doctors/doctor2.png"
-                  alt=""
-                  class="h-full w-full object-cover object-center"
-                />
-              </div>
-              <div class="space-y-2">
-                <div class="text-small-bold text-primary">
-                  Kedokteran Gigi Anak
-                </div>
-                <div class="text-large-semibold">drg. Shine Sari</div>
-                <p class="text-regular-normal">
-                  Spesialis anak dengan pendekatan ramah dan teknik khusus
-                  mengatasi kecemasan dental pada anak.
-                </p>
-                <div class="flex items-center gap-x-2">
-                  <IconStar />
-                  4,9
-                </div>
-                <div class="text-regular-bold">Jadwal Praktek</div>
-                <div>Senin - Rabu</div>
-              </div>
-            </div>
+            <SelectedDoctorDetails :doctor-id="dokter || null" />
 
             <!-- Rencana Perawatan -->
             <div class="space-y-2 col-span-full">
               <div class="text-regular-medium">Rencana Perawatan</div>
               <v-textarea
-                v-model="form.rencanaPerawatan"
+                v-model="rencanaPerawatan"
                 placeholder="Masukkan rencana perawatan"
                 variant="outlined"
                 rows="4"
+                :error-messages="
+                  errors.rencanaPerawatan ? [errors.rencanaPerawatan] : []
+                "
               />
             </div>
 
@@ -188,28 +144,86 @@
   </div>
 </template>
 <script setup lang="ts">
-import { reactive, ref, onMounted, computed, watch } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
+import { useForm, useFieldModel } from 'vee-validate';
+import { toTypedSchema } from '@vee-validate/yup';
+import { object, string } from 'yup';
 import type {
   Branch,
   Doctor,
   CreatePublicAppointmentRequest,
 } from '~/composables/useApi';
 
+type PatientStatus = 'married' | 'single';
+type ReservationFormValues = {
+  nama: string;
+  noTelepon: string;
+  statusPasien: PatientStatus | '';
+  cabangKlinik: string;
+  dokter: string;
+  tanggalKedatangan: string;
+  rencanaPerawatan: string;
+};
+
 // Composables
 const { createPublicAppointment } = useAppointments();
 const { fetchBranches } = useBranches();
-const { getAvailableDoctors, fetchDoctorsForDropdown } = useDoctors();
+const { fetchDoctorsForDropdownByDate } = useDoctors();
 
-// Reactive state
-const form = reactive({
+const reservationSchema = toTypedSchema(
+  object({
+    nama: string().trim().required('Nama wajib diisi'),
+    noTelepon: string()
+      .trim()
+      .required('No telepon wajib diisi')
+      .matches(/^[0-9+][0-9\s-]{7,15}$/, 'Format nomor telepon tidak valid'),
+    statusPasien: string()
+      .oneOf(['married', 'single'], 'Status pasien tidak valid')
+      .required('Status pasien wajib dipilih'),
+    cabangKlinik: string().trim().required('Cabang klinik wajib dipilih'),
+    dokter: string().trim().required('Dokter wajib dipilih'),
+    tanggalKedatangan: string()
+      .trim()
+      .required('Tanggal kedatangan wajib diisi'),
+    rencanaPerawatan: string().optional(),
+  })
+);
+
+const initialFormValues: ReservationFormValues = {
   nama: '',
   noTelepon: '',
-  statusPasien: '' as 'married' | 'single' | '',
+  statusPasien: '',
   cabangKlinik: '',
   dokter: '',
   tanggalKedatangan: '',
   rencanaPerawatan: '',
+};
+
+const { handleSubmit, errors, resetForm } = useForm<ReservationFormValues>({
+  validationSchema: reservationSchema,
+  initialValues: initialFormValues,
+  validateOnMount: false,
 });
+
+const nama = useFieldModel<ReservationFormValues['nama']>('nama');
+const noTelepon = useFieldModel<ReservationFormValues['noTelepon']>(
+  'noTelepon'
+);
+const statusPasien = useFieldModel<ReservationFormValues['statusPasien']>(
+  'statusPasien'
+);
+const cabangKlinik = useFieldModel<ReservationFormValues['cabangKlinik']>(
+  'cabangKlinik'
+);
+const dokter = useFieldModel<ReservationFormValues['dokter']>('dokter');
+const tanggalKedatangan =
+  useFieldModel<ReservationFormValues['tanggalKedatangan']>(
+    'tanggalKedatangan'
+  );
+const rencanaPerawatan =
+  useFieldModel<ReservationFormValues['rencanaPerawatan']>(
+    'rencanaPerawatan'
+  );
 
 const isLoading = ref(false);
 const isSubmitting = ref(false);
@@ -236,121 +250,118 @@ const cabangKlinikOptions = computed(() =>
 );
 
 const dokterOptions = computed(() =>
-  doctors.value.map((doctor) => ({
-    title: doctor.user?.profile?.full_name || `Doctor ${doctor.id}`,
+  doctors.value.map((doctorItem) => ({
+    title: doctorItem.user?.profile?.full_name || `Doctor ${doctorItem.id}`,
     subtitle: useAvailableDoctors.value
       ? `${
-          doctor.user?.profile?.specialization || 'Kedokteran Gigi Umum'
-        } - Tersedia pada tanggal ini`
-      : doctor.user?.profile?.specialization || 'Kedokteran Gigi Umum',
-    value: doctor.id,
+          doctorItem.user?.profile?.specialization || 'Kedokteran Gigi Umum'
+        } - Tersedia pada ${tanggalKedatangan.value}${
+          selectedTime.value ? ` pukul ${selectedTime.value}` : ''
+        }`
+      : doctorItem.user?.profile?.specialization || 'Kedokteran Gigi Umum',
+    value: doctorItem.id,
   }))
 );
 
+const availableDoctorHint = computed(() => {
+  if (!useAvailableDoctors.value || !tanggalKedatangan.value) {
+    return '';
+  }
+
+  const messageParts = [`tanggal ${tanggalKedatangan.value}`];
+
+  if (selectedTime.value) {
+    messageParts.push(`pukul ${selectedTime.value}`);
+  }
+
+  return `Menampilkan dokter yang tersedia pada ${messageParts.join(' ')}`;
+});
+
 // Submit function with API integration
-const submitReservation = async () => {
-  // Validate required fields
-  const requiredFields = [
-    'nama',
-    'noTelepon',
-    'statusPasien',
-    'cabangKlinik',
-    'dokter',
-    'tanggalKedatangan',
-  ];
+const submitReservation = handleSubmit(
+  async (values) => {
+    isSubmitting.value = true;
 
-  const emptyFields = requiredFields.filter(
-    (field) => !form[field as keyof typeof form]
-  );
+    try {
+      const appointmentDate = new Date(values.tanggalKedatangan).toISOString();
 
-  if (emptyFields.length > 0) {
-    alert('Mohon lengkapi semua field yang wajib diisi!');
-    return;
-  }
+      const requestData: CreatePublicAppointmentRequest = {
+        doctor_id: values.dokter,
+        clinic_branch_id: values.cabangKlinik,
+        phone_number: values.noTelepon,
+        treatment_plan: values.rencanaPerawatan || '',
+        appointment_date: appointmentDate,
+        name: values.nama,
+        status_patient: values.statusPasien as PatientStatus,
+        description: values.rencanaPerawatan || '',
+      };
 
-  isSubmitting.value = true;
+      await createPublicAppointment(requestData);
+      alert('Reservasi berhasil dibuat! Kami akan menghubungi Anda segera.');
 
-  try {
-    // Prepare appointment date in ISO format
-    const appointmentDate = new Date(form.tanggalKedatangan).toISOString();
+      resetForm({ values: { ...initialFormValues } });
+      doctorSearchQuery.value = '';
+      doctors.value = [];
+      useAvailableDoctors.value = false;
+    } catch (error: unknown) {
+      console.error('Error creating reservation:', error);
 
-    const requestData: CreatePublicAppointmentRequest = {
-      doctor_id: form.dokter,
-      clinic_branch_id: form.cabangKlinik,
-      phone_number: form.noTelepon,
-      treatment_plan: form.rencanaPerawatan || '',
-      appointment_date: appointmentDate,
-      name: form.nama,
-      status_patient: form.statusPasien as 'married' | 'single',
-      description: form.rencanaPerawatan || '',
-    };
+      let errorMessage =
+        'Terjadi kesalahan saat membuat reservasi. Silakan coba lagi.';
 
-    console.log('Submitting reservation:', requestData);
-
-    const response = await createPublicAppointment(requestData);
-
-    console.log('Reservation created successfully:', response);
-    alert('Reservasi berhasil dibuat! Kami akan menghubungi Anda segera.');
-
-    // Reset form after successful submission
-    Object.keys(form).forEach((key) => {
-      form[key as keyof typeof form] = '';
-    });
-  } catch (error: unknown) {
-    console.error('Error creating reservation:', error);
-
-    let errorMessage =
-      'Terjadi kesalahan saat membuat reservasi. Silakan coba lagi.';
-
-    if (error && typeof error === 'object' && 'data' in error) {
-      const apiError = error as { data?: { message?: string } };
-      if (apiError.data?.message) {
-        errorMessage = apiError.data.message;
+      if (error && typeof error === 'object' && 'data' in error) {
+        const apiError = error as { data?: { message?: string } };
+        if (apiError.data?.message) {
+          errorMessage = apiError.data.message;
+        }
+      } else if (error instanceof Error && error.message) {
+        errorMessage = error.message;
       }
-    } else if (error instanceof Error && error.message) {
-      errorMessage = error.message;
-    }
 
-    alert(errorMessage);
-  } finally {
-    isSubmitting.value = false;
+      alert(errorMessage);
+    } finally {
+      isSubmitting.value = false;
+    }
+  },
+  ({ errors: submitErrors }) => {
+    if (Object.keys(submitErrors).length) {
+      alert('Mohon lengkapi semua field yang wajib diisi!');
+    }
   }
-};
+);
 
 // Debounced doctor search function
 const fetchDoctorsWithSearch = async (searchQuery = '') => {
+  if (!tanggalKedatangan.value) {
+    doctors.value = [];
+    useAvailableDoctors.value = false;
+    return;
+  }
+
   isLoadingDoctors.value = true;
   try {
-    let doctorsData: Doctor[];
+    let doctorsData: Doctor[] = [];
+    const trimmedSearch = searchQuery.trim().toLowerCase();
+    const sanitizedTime = selectedTime.value ? selectedTime.value.trim() : '';
 
-    // Use available doctors if date is selected and we have a date
-    if (useAvailableDoctors.value && form.tanggalKedatangan) {
-      doctorsData = await getAvailableDoctors(
-        form.tanggalKedatangan,
-        selectedTime.value
+    doctorsData = await fetchDoctorsForDropdownByDate(
+      tanggalKedatangan.value,
+      sanitizedTime || undefined
+    );
+    useAvailableDoctors.value = true;
+
+    if (trimmedSearch) {
+      doctorsData = doctorsData.filter((doctorItem) =>
+        doctorItem.user?.profile?.full_name
+          ?.toLowerCase()
+          .includes(trimmedSearch)
       );
-      // Filter by search query if provided
-      if (searchQuery) {
-        const searchLower = searchQuery.toLowerCase();
-        doctorsData = doctorsData.filter((doctor) =>
-          doctor.user?.profile?.full_name?.toLowerCase().includes(searchLower)
-        );
-      }
-    } else {
-      // Use the new dropdown endpoint for better performance
-      doctorsData = await fetchDoctorsForDropdown();
-      
-      // Filter by search query if provided
-      if (searchQuery) {
-        const searchLower = searchQuery.toLowerCase();
-        doctorsData = doctorsData.filter((doctor) =>
-          doctor.user?.profile?.full_name?.toLowerCase().includes(searchLower)
-        );
-      }
     }
 
     doctors.value = doctorsData;
   } catch (error) {
+    doctors.value = [];
+    useAvailableDoctors.value = false;
     console.error('Error fetching doctors:', error);
   } finally {
     isLoadingDoctors.value = false;
@@ -359,35 +370,43 @@ const fetchDoctorsWithSearch = async (searchQuery = '') => {
 
 const debouncedFetchDoctors = useDebounceFn(fetchDoctorsWithSearch, 300);
 
-// Fetch available doctors when date changes
-const fetchAvailableDoctorsForDate = async () => {
-  if (!form.tanggalKedatangan) {
-    useAvailableDoctors.value = false;
-    return;
-  }
-
-  useAvailableDoctors.value = true;
-  form.dokter = ''; // Clear selected doctor when date changes
-  await debouncedFetchDoctors(doctorSearchQuery.value);
-};
-
 // Watch for doctor search query changes
 watch(doctorSearchQuery, (newQuery) => {
+  if (!tanggalKedatangan.value) {
+    return;
+  }
   debouncedFetchDoctors(newQuery);
 });
 
 // Watch for date changes to fetch available doctors
-watch(
-  () => form.tanggalKedatangan,
-  () => {
-    fetchAvailableDoctorsForDate();
+watch(tanggalKedatangan, (newDate, oldDate) => {
+  if (dokter.value) {
+    dokter.value = '';
   }
-);
+
+  if (!newDate) {
+    selectedTime.value = '';
+    useAvailableDoctors.value = false;
+    doctors.value = [];
+    isLoadingDoctors.value = false;
+  }
+
+  if (newDate && newDate !== oldDate) {
+    debouncedFetchDoctors(doctorSearchQuery.value);
+  }
+});
 
 // Watch for time changes to refetch available doctors
-watch(selectedTime, () => {
-  if (form.tanggalKedatangan) {
-    fetchAvailableDoctorsForDate();
+watch(selectedTime, (newTime, oldTime) => {
+  if (!tanggalKedatangan.value) {
+    return;
+  }
+
+  if (newTime !== oldTime) {
+    if (dokter.value) {
+      dokter.value = '';
+    }
+    debouncedFetchDoctors(doctorSearchQuery.value);
   }
 });
 
@@ -408,8 +427,7 @@ const loadBranches = async () => {
 onMounted(async () => {
   isLoading.value = true;
   try {
-    // Load branches and doctors in parallel for better performance
-    await Promise.all([loadBranches(), debouncedFetchDoctors('')]);
+    await loadBranches();
   } catch (error) {
     console.error('Error loading initial data:', error);
   } finally {

@@ -3,43 +3,77 @@ import type {
   DoctorContent,
   DoctorContentListResponse,
   AvailableDoctorsResponse,
-  DoctorDropdownItem
+  DoctorDropdownItem,
+  DoctorDropdownByDateResponse
 } from './useApi'
+
+interface DoctorContentMutationPayload {
+  title?: string
+  description?: string
+  doctor_id?: string
+  is_active?: boolean
+  image?: File | Blob | null
+}
+
+interface CreateDoctorContentPayload extends DoctorContentMutationPayload {
+  title: string
+  description: string
+  doctor_id: string
+  is_active?: boolean
+}
 
 export const useDoctors = () => {
   const { API_BASE_URL } = useApi()
 
+  const buildDoctorContentFormData = (payload: DoctorContentMutationPayload) => {
+    const formData = new FormData()
+
+    if (payload.title !== undefined) {
+      formData.append('title', payload.title)
+    }
+
+    if (payload.description !== undefined) {
+      formData.append('description', payload.description)
+    }
+
+    if (payload.doctor_id) {
+      formData.append('doctor_id', payload.doctor_id)
+    }
+
+    if (payload.is_active !== undefined) {
+      formData.append('is_active', payload.is_active ? 'true' : 'false')
+    }
+
+    if (payload.image instanceof File || payload.image instanceof Blob) {
+      formData.append('image', payload.image)
+    }
+
+    return formData
+  }
+
   // Fetch all doctors from doctor-content endpoint
   const fetchDoctors = async (search = '', page = 1, limit = 100): Promise<Doctor[]> => {
-    try {
-      const params = new URLSearchParams({
-        search,
-        page: page.toString(),
-        limit: limit.toString()
-      })
-      
-      const response = await $fetch<DoctorContentListResponse>(`${API_BASE_URL}/doctorcontent?${params.toString()}`)
-      
-      // Transform DoctorContent to Doctor format for compatibility
-      return response.data.map((doctorContent): Doctor => ({
+    const params = new URLSearchParams({
+      search,
+      page: page.toString(),
+      limit: limit.toString()
+    })
+    
+    const response = await $fetch<DoctorContentListResponse>(`${API_BASE_URL}/doctorcontent?${params.toString()}`)
+    
+    // Transform DoctorContent to Doctor format for compatibility
+    return response.data.map((doctorContent): Doctor => ({
+      id: doctorContent.doctor_id,
+      user: {
         id: doctorContent.doctor_id,
-        user: {
-          id: doctorContent.doctor_id,
-          profile: {
-            full_name: doctorContent.doctor_name,
-            specialization: doctorContent.title, // Use title as specialization
-            phone_number: '', // Not available in doctor-content
-            email: doctorContent.doctor_email,
-          }
+        profile: {
+          full_name: doctorContent.doctor_name,
+          specialization: doctorContent.title, // Use title as specialization
+          phone_number: '', // Not available in doctor-content
+          email: doctorContent.doctor_email,
         }
-      }))
-    } catch (error) {
-      console.error('Error fetching doctors:', error)
-      // Return fallback data if API fails
-      return [
-        
-      ]
-    }
+      }
+    }))
   }
 
   // Fetch all doctor contents with full details
@@ -58,14 +92,37 @@ export const useDoctors = () => {
     }
   }
 
+  const createDoctorContent = async (payload: CreateDoctorContentPayload): Promise<DoctorContent> => {
+    const formData = buildDoctorContentFormData(payload)
+
+    return await $fetch<DoctorContent>(`${API_BASE_URL}/doctorcontent`, {
+      method: 'POST',
+      body: formData,
+    })
+  }
+
+  const updateDoctorContent = async (id: string, payload: DoctorContentMutationPayload): Promise<void> => {
+    const formData = buildDoctorContentFormData(payload)
+
+    await $fetch(`${API_BASE_URL}/doctorcontent/${id}`, {
+      method: 'PUT',
+      body: formData,
+    })
+  }
+
+  const deleteDoctorContent = async (id: string): Promise<void> => {
+    await $fetch(`${API_BASE_URL}/doctorcontent/${id}`, {
+      method: 'DELETE',
+    })
+  }
+
   // Fetch doctor by ID
-  const fetchDoctorById = async (id: string): Promise<DoctorContent | null> => {
+  const fetchDoctorById = async (id: string): Promise<DoctorContent> => {
     try {
-      const response = await $fetch<DoctorContent>(`${API_BASE_URL}/doctorcontent/${id}`)
-      return response
+      return await $fetch<DoctorContent>(`${API_BASE_URL}/doctorcontent/${id}`)
     } catch (error) {
       console.error(`Error fetching doctor with id ${id}:`, error)
-      return null
+      throw error
     }
   }
 
@@ -102,33 +159,59 @@ export const useDoctors = () => {
       return []
     } catch (error) {
       console.error('Error fetching available doctors:', error)
-      // Fallback to regular doctor list if available doctors API fails
-      return fetchDoctors()
+      throw error
     }
   }
+
+  const transformDropdownDoctors = (items: DoctorDropdownItem[] = []): Doctor[] =>
+    items.map((doctor): Doctor => ({
+      id: doctor.id,
+      user: {
+        id: doctor.id,
+        profile: {
+          full_name: doctor.username,
+          specialization: 'Dokter Gigi',
+          phone_number: '',
+          email: doctor.email || '',
+        }
+      }
+    }))
 
   // Fetch doctors from the public appointment dropdown endpoint
   const fetchDoctorsForDropdown = async (): Promise<Doctor[]> => {
     try {
       const response = await $fetch<DoctorDropdownItem[]>(`${API_BASE_URL}/publicappointment/doctors/dropdown`)
-      
-      // Transform DoctorDropdownItem to Doctor format for compatibility
-      return response.map((doctor): Doctor => ({
-        id: doctor.id,
-        user: {
-          id: doctor.id,
-          profile: {
-            full_name: doctor.username,
-            specialization: 'Dokter Gigi', // Default specialization since not provided by the endpoint
-            phone_number: '',
-            email: '',
-          }
-        }
-      }))
+
+      return transformDropdownDoctors(response)
     } catch (error) {
       console.error('Error fetching doctors for dropdown:', error)
-      // Fallback to the regular fetchDoctors if this endpoint fails
-      return fetchDoctors()
+      throw error
+    }
+  }
+
+  const fetchDoctorsForDropdownByDate = async (date: string, time?: string): Promise<Doctor[]> => {
+    if (!date) {
+      throw new Error('Date is required to fetch doctors for dropdown by date')
+    }
+
+    try {
+      const params = new URLSearchParams({ date })
+      if (time) {
+        params.append('time', time)
+      }
+
+      const response = await $fetch<DoctorDropdownByDateResponse | DoctorDropdownItem[]>(
+        `${API_BASE_URL}/publicappointment/doctors/dropdownwithfilterdate?${params.toString()}`
+      )
+
+      const doctorItems = Array.isArray(response)
+        ? response
+        : response?.doctors ?? []
+
+      return transformDropdownDoctors(doctorItems)
+    } catch (error) {
+      console.error('Error fetching doctors for dropdown with date filter:', error)
+      throw error
     }
   }
 
@@ -139,6 +222,10 @@ export const useDoctors = () => {
     getDoctorImageUrl,
     getAvailableDoctors,
     fetchDoctorsForDropdown,
+    fetchDoctorsForDropdownByDate,
+    createDoctorContent,
+    updateDoctorContent,
+    deleteDoctorContent,
   }
 }
 

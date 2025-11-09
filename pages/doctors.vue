@@ -7,7 +7,7 @@
         class="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-10"
       >
         <p class="text-regular-light text-neutral-60">
-          Menampilkan 1-10 of 170 hasil
+          {{ resultSummary }}
         </p>
         <div class="flex w-full flex-1 gap-x-3.5 lg:justify-end grow">
           <v-text-field
@@ -33,7 +33,28 @@
         </div>
       </div>
 
+      <div v-if="loadError" class="mb-6">
+        <v-alert type="error" variant="tonal">
+          {{ loadError }}
+        </v-alert>
+      </div>
+
       <div
+        v-else-if="isLoading"
+        class="flex justify-center py-16"
+      >
+        <v-progress-circular indeterminate color="primary" size="48" />
+      </div>
+
+      <div
+        v-else-if="!paginatedDoctors.length"
+        class="py-16 text-center text-gray-500"
+      >
+        Tidak ada dokter ditemukan.
+      </div>
+
+      <div
+        v-else
         class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10 mb-10"
       >
         <DoctorCard
@@ -45,8 +66,8 @@
       </div>
 
       <v-pagination
-        v-model="page"
-        :length="length"
+        v-model="currentPage"
+        :length="totalPages"
         rounded="circle"
         :total-visible="6"
         color="black"
@@ -56,29 +77,39 @@
         <template #prev>
           <v-btn
             class="!size-12"
-            :variant="page === 1 ? 'text' : 'outlined'"
-            :class="[page === 1 ? '!bg-grey-100' : '!border-grey-200']"
-            :ripple="page !== 1"
+            :variant="currentPage === 1 ? 'text' : 'outlined'"
+            :class="[
+              currentPage === 1 ? '!bg-grey-100' : '!border-grey-200',
+            ]"
+            :ripple="currentPage !== 1"
             @click="goToPreviousPage"
           >
             <IconRightArrowSlim
               size="16"
               class="rotate-180"
-              :class="[page === 1 ? 'text-grey-300' : 'text-black']"
+              :class="[
+                currentPage === 1 ? 'text-grey-300' : 'text-black',
+              ]"
             />
           </v-btn>
         </template>
         <template #next>
           <v-btn
             class="!size-12"
-            :variant="page === length ? 'text' : 'outlined'"
-            :class="[page === length ? '!bg-grey-100' : '!border-grey-200']"
-            :ripple="page !== length"
+            :variant="currentPage === totalPages ? 'text' : 'outlined'"
+            :class="[
+              currentPage === totalPages
+                ? '!bg-grey-100'
+                : '!border-grey-200',
+            ]"
+            :ripple="currentPage !== totalPages"
             @click="goToNextPage"
           >
             <IconRightArrowSlim
               size="16"
-              :color-class="page === length ? 'text-grey-300' : 'text-black'"
+              :class="[
+                currentPage === totalPages ? 'text-grey-300' : 'text-black',
+              ]"
             />
           </v-btn>
         </template>
@@ -99,57 +130,100 @@
               :src="modalDoctorPhoto"
               :alt="modalDoctorName"
               class="w-full h-full object-cover object-center"
+              @error="modalImageError = true"
             />
           </div>
           <div class="space-y-6">
-            <div class="space-y-2">
-              <div class="text-regular-bold text-primary">
-                {{ modalDoctorBadge }}
-              </div>
-              <div class="heading-5">
-                {{ modalDoctorName }}
-              </div>
-              <p class="text-regular-normal">
-                Ahli perawatan saluran akar dan estetik dental dengan pendekatan
-                minimal invasive terkini.
-              </p>
-              <div class="flex gap-x-2 items-center">
-                <IconStar />
-                <span class="text-regular-normal">
-                  {{ modalDoctorRating }}
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <div class="text-regular-bold text-primary">
+              {{ modalDoctorBadge }}
+            </div>
+            <div class="heading-5">
+              {{ modalDoctorName }}
+            </div>
+            <p class="text-regular-normal">
+              {{
+                modalDoctorSpecialist ||
+                'Informasi deskripsi dokter belum tersedia.'
+              }}
+            </p>
+          </div>
+
+          <div
+            v-if="modalDoctorEmail"
+            class="text-sm text-gray-600"
+          >
+            Email:
+            <a
+              class="text-primary underline"
+              :href="`mailto:${modalDoctorEmail}`"
+            >
+              {{ modalDoctorEmail }}
+            </a>
+          </div>
+
+          <div
+            v-if="modalDoctorCredentials.length"
+            class="space-y-1 text-sm text-gray-600"
+          >
+            <div
+              v-for="credential in modalDoctorCredentials"
+              :key="credential.label"
+              class="flex items-center gap-x-2"
+            >
+              <span class="font-medium text-gray-700">
+                {{ credential.label }}:
+              </span>
+              <span>{{ credential.value }}</span>
+            </div>
+          </div>
+
+          <div
+            v-if="modalDoctorFee"
+            class="text-sm text-gray-600"
+          >
+            Fee Persentase:
+            <span class="font-medium text-gray-800">
+              {{ modalDoctorFee }}
+            </span>
+          </div>
+            </div>
+            <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-semibold text-gray-900">
+                Jadwal Praktek
+              </h3>
+              <v-chip
+                :color="isDoctorActive ? 'green' : 'red'"
+                variant="tonal"
+                size="small"
+                class="font-semibold"
+              >
+                {{ isDoctorActive ? 'Aktif' : 'Tidak Aktif' }}
+              </v-chip>
+            </div>
+
+            <div
+              v-if="hasSchedules"
+              class="space-y-2"
+            >
+              <div
+                v-for="(schedule, index) in modalDoctorSchedules"
+                :key="`${schedule.day_of_week}-${index}`"
+                class="flex justify-between items-center py-2"
+              >
+                <span class="text-gray-700">
+                  {{ formatDayLabel(schedule.day_of_week) }}
+                </span>
+                <span class="font-semibold text-green-600">
+                  {{ formatScheduleRange(schedule) }}
                 </span>
               </div>
             </div>
-            <div class="space-y-3">
-              <div class="flex items-center justify-between">
-                <h3 class="text-lg font-semibold text-gray-900">
-                  Jadwal Praktek
-                </h3>
-                <v-chip
-                  color="red"
-                  variant="tonal"
-                  size="small"
-                  class="font-semibold text-red-700"
-                >
-                  Tidak Tersedia
-                </v-chip>
-              </div>
-
-              <!-- Schedule Items -->
-              <div class="space-y-2">
-                <div class="flex justify-between items-center py-2">
-                  <span class="text-gray-700">Senin - Sabtu</span>
-                  <span class="font-semibold text-green-600"
-                    >08:00 - 12:00</span
-                  >
-                </div>
-                <div class="flex justify-between items-center py-2">
-                  <span class="text-gray-700">Minggu</span>
-                  <span class="font-semibold text-green-600"
-                    >18:00 - 22:00</span
-                  >
-                </div>
-              </div>
+            <p v-else class="text-sm text-gray-500">
+              Jadwal belum tersedia.
+            </p>
             </div>
           </div>
         </div>
@@ -159,230 +233,221 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
-import { useHead } from '#imports';
-import IconStar from '@/components/Icon/IconStar.vue';
-import type { DoctorContent } from '~/composables/useApi';
+import { ref, computed, watch, onMounted } from 'vue';
+import { useSeoMeta } from '#imports';
+import type { DoctorContent, DoctorSchedule } from '~/composables/useApi';
 
-// Support both legacy static doctor data and new API data
-interface LegacyDoctor {
-  id: number;
-  name: string;
-  specialist: string;
-  rating: number;
-  photo: string;
-  badge: string;
-  badgeColor: string;
-}
+const { fetchDoctorContents, getDoctorImageUrl } = useDoctors();
 
-// Union type for backward compatibility
-type DoctorType = LegacyDoctor | DoctorContent;
-
-// Using the same doctor data structure from DoctorsSection
-const doctors = [
-  {
-    id: 1,
-    name: 'drg. Michael Tanoto, Sp.Ort',
-    specialist:
-      'Spesialis ortodonti dengan keahlian khusus pada perawatan gigi yang tidak rata',
-    rating: 4.8,
-    photo: '/images/doctors/michael.png',
-    badge: 'Ortodontis',
-    badgeColor: 'green-lighten-5',
-  },
-  {
-    id: 2,
-    name: 'drg. Lisa Permata, Sp.KG',
-    specialist: 'Ahli perawatan saluran akar dan rehabilitasi gigi yang rusak',
-    rating: 4.7,
-    photo: '/images/doctors/michael.png',
-    badge: 'Konservasi Gigi',
-    badgeColor: 'green-lighten-5',
-  },
-  {
-    id: 3,
-    name: 'drg. Sarah Wijaya',
-    specialist:
-      'Dokter gigi umum dengan 10+ tahun pengalaman dalam perawatan gigi keluarga',
-    rating: 4.9,
-    photo: '/images/doctors/michael.png',
-    badge: 'Dokter Umum',
-    badgeColor: 'green-lighten-5',
-  },
-  {
-    id: 4,
-    name: 'drg. Ahmad Rizki, Sp.BM',
-    specialist: 'Spesialis bedah mulut untuk pencabutan dan implant gigi',
-    rating: 4.8,
-    photo: '/images/doctors/michael.png',
-    badge: 'Bedah Mulut',
-    badgeColor: 'green-lighten-5',
-  },
-  {
-    id: 1,
-    name: 'drg. Michael Tanoto, Sp.Ort',
-    specialist:
-      'Spesialis ortodonti dengan keahlian khusus pada perawatan gigi yang tidak rata',
-    rating: 4.8,
-    photo: '/images/doctors/michael.png',
-    badge: 'Ortodontis',
-    badgeColor: 'green-lighten-5',
-  },
-  {
-    id: 2,
-    name: 'drg. Lisa Permata, Sp.KG',
-    specialist: 'Ahli perawatan saluran akar dan rehabilitasi gigi yang rusak',
-    rating: 4.7,
-    photo: '/images/doctors/michael.png',
-    badge: 'Konservasi Gigi',
-    badgeColor: 'green-lighten-5',
-  },
-  {
-    id: 3,
-    name: 'drg. Sarah Wijaya',
-    specialist:
-      'Dokter gigi umum dengan 10+ tahun pengalaman dalam perawatan gigi keluarga',
-    rating: 4.9,
-    photo: '/images/doctors/michael.png',
-    badge: 'Dokter Umum',
-    badgeColor: 'green-lighten-5',
-  },
-  {
-    id: 4,
-    name: 'drg. Ahmad Rizki, Sp.BM',
-    specialist: 'Spesialis bedah mulut untuk pencabutan dan implant gigi',
-    rating: 4.8,
-    photo: '/images/doctors/michael.png',
-    badge: 'Bedah Mulut',
-    badgeColor: 'green-lighten-5',
-  },
-];
-
-// Search and pagination states
+// Pagination & search state
+const DEFAULT_LIMIT = 12;
 const searchQuery = ref('');
+const appliedSearch = ref('');
 const currentPage = ref(1);
-const itemsPerPage = 8;
 
-// Modal states
+// Data state
+const doctorContents = ref<DoctorContent[]>([]);
+const totalDoctors = ref(0);
+const isLoading = ref(false);
+const loadError = ref<string | null>(null);
+
+// Modal state
 const showDoctorModal = ref(false);
-const selectedDoctor = ref<DoctorType | null>(null);
+const selectedDoctor = ref<DoctorContent | null>(null);
+const modalImageError = ref(false);
 
-// Search handler
+const fetchDoctors = async () => {
+  isLoading.value = true;
+  loadError.value = null;
+
+  try {
+    const response = await fetchDoctorContents(
+      appliedSearch.value,
+      currentPage.value,
+      DEFAULT_LIMIT
+    );
+
+    doctorContents.value = response.data;
+    totalDoctors.value = response.total;
+  } catch (error) {
+    console.error('Error fetching doctor contents:', error);
+    loadError.value =
+      error instanceof Error
+        ? error.message
+        : 'Gagal memuat data dokter. Silakan coba lagi.';
+  } finally {
+    isLoading.value = false;
+  }
+};
+
+onMounted(fetchDoctors);
+
+watch(currentPage, (newPage, oldPage) => {
+  if (newPage !== oldPage) {
+    fetchDoctors();
+  }
+});
+
+const totalPages = computed(() =>
+  Math.max(1, Math.ceil(totalDoctors.value / DEFAULT_LIMIT))
+);
+
+const paginatedDoctors = computed(() => doctorContents.value);
+
+const resultSummary = computed(() => {
+  if (!doctorContents.value.length) {
+    return totalDoctors.value
+      ? `Menampilkan 0 dari ${totalDoctors.value} hasil`
+      : 'Tidak ada hasil';
+  }
+
+  const start = (currentPage.value - 1) * DEFAULT_LIMIT + 1;
+  const end = start + doctorContents.value.length - 1;
+
+  return `Menampilkan ${start}-${end} dari ${totalDoctors.value} hasil`;
+});
+
 const handleSearch = () => {
-  currentPage.value = 1; // Reset to first page on new search
+  const normalizedQuery = searchQuery.value.trim();
+
+  if (
+    normalizedQuery === appliedSearch.value &&
+    currentPage.value === 1
+  ) {
+    return;
+  }
+
+  appliedSearch.value = normalizedQuery;
+  currentPage.value = 1;
+  fetchDoctors();
 };
 
-// Modal handlers
-const handleDoctorClick = (doctor: DoctorType) => {
-  selectedDoctor.value = doctor;
-  showDoctorModal.value = true;
-};
-
-const closeDoctorModal = () => {
-  showDoctorModal.value = false;
-  selectedDoctor.value = null;
-};
-
-// Computed properties for handling both doctor types
-const modalDoctorName = computed(() => {
-  if (!selectedDoctor.value) return '';
-  // Check if it's LegacyDoctor (has 'name' property)
-  if ('name' in selectedDoctor.value) {
-    return selectedDoctor.value.name;
-  }
-  // It's DoctorContent (has 'doctor_name' property)
-  return selectedDoctor.value.doctor_name;
-});
-
-const modalDoctorSpecialist = computed(() => {
-  if (!selectedDoctor.value) return '';
-  // Check if it's LegacyDoctor (has 'specialist' property)
-  if ('specialist' in selectedDoctor.value) {
-    return selectedDoctor.value.specialist;
-  }
-  // It's DoctorContent (has 'description' property)
-  return selectedDoctor.value.description;
-});
-
-const modalDoctorPhoto = computed(() => {
-  if (!selectedDoctor.value) return '/images/doctors/doctor2.png';
-  // Check if it's LegacyDoctor (has 'photo' property)
-  if ('photo' in selectedDoctor.value) {
-    return selectedDoctor.value.photo;
-  }
-  // It's DoctorContent - use default for now
-  return '/images/doctors/doctor2.png';
-});
-
-const modalDoctorBadge = computed(() => {
-  if (!selectedDoctor.value) return 'Dokter Gigi';
-  // Check if it's LegacyDoctor (has 'badge' property)
-  if ('badge' in selectedDoctor.value) {
-    return selectedDoctor.value.badge;
-  }
-  // It's DoctorContent - use title or default
-  return selectedDoctor.value.title || 'Dokter Gigi';
-});
-
-const modalDoctorRating = computed(() => {
-  if (!selectedDoctor.value) return null;
-  // Check if it's LegacyDoctor (has 'rating' property)
-  if ('rating' in selectedDoctor.value) {
-    return selectedDoctor.value.rating;
-  }
-  // It's DoctorContent - no rating available
-  return null;
-});
-
-// Pagination handlers
 const goToPreviousPage = () => {
   if (currentPage.value > 1) {
-    currentPage.value--;
+    currentPage.value -= 1;
   }
 };
 
 const goToNextPage = () => {
   if (currentPage.value < totalPages.value) {
-    currentPage.value++;
+    currentPage.value += 1;
   }
 };
 
-// Computed properties for filtered and paginated data
-const filteredDoctors = computed(() => {
-  return doctors.filter((doctor) => {
-    const searchTerm = searchQuery.value.toLowerCase();
-    return searchTerm
-      ? doctor.name.toLowerCase().includes(searchTerm) ||
-          doctor.specialist.toLowerCase().includes(searchTerm) ||
-          doctor.badge.toLowerCase().includes(searchTerm)
-      : true;
-  });
+const handleDoctorClick = (doctor: DoctorContent) => {
+  selectedDoctor.value = doctor;
+  modalImageError.value = false;
+  showDoctorModal.value = true;
+};
+
+watch(showDoctorModal, (isOpen) => {
+  if (!isOpen) {
+    selectedDoctor.value = null;
+    modalImageError.value = false;
+  }
 });
 
-const totalPages = computed(() =>
-  Math.ceil(filteredDoctors.value.length / itemsPerPage)
+const modalDoctorName = computed(
+  () => selectedDoctor.value?.doctor_name ?? ''
+);
+const modalDoctorSpecialist = computed(
+  () => selectedDoctor.value?.description ?? ''
+);
+const modalDoctorBadge = computed(
+  () => selectedDoctor.value?.title ?? 'Dokter Gigi'
+);
+const modalDoctorEmail = computed(
+  () => selectedDoctor.value?.doctor_email ?? ''
+);
+const modalDoctorPhoto = computed(() => {
+  if (!selectedDoctor.value || modalImageError.value) {
+    return '/images/doctors/doctor2.png';
+  }
+  return getDoctorImageUrl(selectedDoctor.value.id);
+});
+const modalDoctorSchedules = computed<DoctorSchedule[]>(() =>
+  (selectedDoctor.value?.schedules ?? []).filter(
+    (schedule) => schedule.is_active
+  )
 );
 
-const paginatedDoctors = computed(() => {
-  const start = (currentPage.value - 1) * itemsPerPage;
-  const end = start + itemsPerPage;
-  return filteredDoctors.value.slice(start, end);
-});
+const modalDoctorCredentials = computed(() => {
+  if (!selectedDoctor.value) {
+    return [];
+  }
 
-// Meta
-useHead({
-  title: 'Dokter Kami - Dental Reservation',
-  meta: [
+  return [
     {
-      name: 'description',
-      content:
-        'Tim dokter spesialis terpercaya kami siap memberikan pelayanan terbaik untuk kesehatan gigi Anda.',
+      label: 'IHS',
+      value: selectedDoctor.value.ihs_number,
     },
-  ],
+    {
+      label: 'STR',
+      value: selectedDoctor.value.str_number,
+    },
+    {
+      label: 'SIP',
+      value: selectedDoctor.value.s_ip_number,
+    },
+  ].filter((credential) => credential.value);
 });
 
-const page = ref(1);
-const length = ref(21);
+const modalDoctorFee = computed(() => {
+  if (
+    !selectedDoctor.value ||
+    selectedDoctor.value.fee_percentage === undefined ||
+    selectedDoctor.value.fee_percentage === null
+  ) {
+    return null;
+  }
+
+  return `${selectedDoctor.value.fee_percentage}%`;
+});
+
+const hasSchedules = computed(
+  () => modalDoctorSchedules.value.length > 0
+);
+
+const isDoctorActive = computed(
+  () => selectedDoctor.value?.is_active ?? false
+);
+
+const formatDayLabel = (dayOfWeek: string) => {
+  const dayMap: Record<string, string> = {
+    monday: 'Senin',
+    tuesday: 'Selasa',
+    wednesday: 'Rabu',
+    thursday: 'Kamis',
+    friday: 'Jumat',
+    saturday: 'Sabtu',
+    sunday: 'Minggu',
+  };
+
+  return dayMap[dayOfWeek?.toLowerCase()] ?? dayOfWeek;
+};
+
+const formatScheduleRange = (schedule: DoctorSchedule) => {
+  const shift1 =
+    schedule.shift1_start && schedule.shift1_end
+      ? `${schedule.shift1_start} - ${schedule.shift1_end}`
+      : null;
+  const shift2 =
+    schedule.shift2_start && schedule.shift2_end
+      ? `${schedule.shift2_start} - ${schedule.shift2_end}`
+      : null;
+
+  if (shift1 && shift2) {
+    return `${shift1} | ${shift2}`;
+  }
+
+  return shift1 ?? shift2 ?? 'Tidak tersedia';
+};
+
+useSeoMeta({
+  title: 'Dokter Kami - Dental Reservation',
+  description:
+    'Tim dokter spesialis terpercaya kami siap memberikan pelayanan terbaik untuk kesehatan gigi Anda.',
+});
 </script>
 
 <style scoped>
