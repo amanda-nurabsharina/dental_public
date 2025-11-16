@@ -27,11 +27,26 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue';
+import type { DoctorContent } from '~/composables/useApi';
+
 defineOptions({
   name: 'DoctorsSection',
 });
 
-const doctors = [
+interface LegacyDoctor {
+  id: number;
+  name: string;
+  specialist: string;
+  rating: number;
+  photo: string;
+  badge: string;
+  badgeColor: string;
+}
+
+type DoctorCardData = LegacyDoctor | DoctorContent;
+
+const fallbackDoctors: LegacyDoctor[] = [
   {
     id: 1,
     name: 'drg. Michael Tanoto, Sp.Ort',
@@ -109,6 +124,22 @@ const doctors = [
     badgeColor: 'green-lighten-5',
   },
 ];
+
+const doctors = ref<DoctorCardData[]>(fallbackDoctors);
+const { fetchDoctorContents } = useDoctors();
+
+const loadDoctors = async () => {
+  try {
+    const response = await fetchDoctorContents('', 1, 8);
+    if (response?.data?.length) {
+      doctors.value = response.data;
+    }
+  } catch (error) {
+    console.error('Failed to fetch doctors for home section:', error);
+  }
+};
+
+onMounted(loadDoctors);
 </script>
 
 <style scoped></style>

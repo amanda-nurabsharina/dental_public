@@ -17,7 +17,7 @@
                 v-model="nama"
                 placeholder="Masukkan nama"
                 variant="outlined"
-                :error-messages="errors.nama ? [errors.nama] : []"
+                v-bind="namaProps"
               />
             </div>
 
@@ -29,7 +29,7 @@
                 placeholder="Masukkan nomor telepon"
                 variant="outlined"
                 type="tel"
-                :error-messages="errors.noTelepon ? [errors.noTelepon] : []"
+                v-bind="noTeleponProps"
               />
             </div>
 
@@ -39,9 +39,10 @@
               <v-select
                 v-model="statusPasien"
                 placeholder="Pilih status pasien"
+                persistent-placeholder
                 variant="outlined"
                 :items="statusPasienOptions"
-                :error-messages="errors.statusPasien ? [errors.statusPasien] : []"
+                v-bind="statusPasienProps"
               />
             </div>
 
@@ -55,21 +56,20 @@
                 :items="cabangKlinikOptions"
                 :loading="isLoadingBranches || isLoading"
                 :disabled="isLoadingBranches || isLoading"
-                :error-messages="errors.cabangKlinik ? [errors.cabangKlinik] : []"
+                v-bind="cabangKlinikProps"
               />
             </div>
 
             <!-- Tanggal Kedatangan -->
             <div class="space-y-2">
               <div class="text-regular-medium required">Tanggal Kedatangan</div>
-              <v-text-field
-                v-model="tanggalKedatangan"
-                type="date"
+              <v-date-input
+                v-model="tanggalKedatanganInput"
                 variant="outlined"
                 :rounded="8"
-                :error-messages="
-                  errors.tanggalKedatangan ? [errors.tanggalKedatangan] : []
-                "
+                prepend-icon=""
+                prepend-inner-icon="mdi-calendar"
+                v-bind="tanggalKedatanganProps"
               />
             </div>
 
@@ -104,7 +104,7 @@
                     ? 'Tidak ada dokter tersedia pada tanggal/waktu yang dipilih'
                     : 'Tidak ada dokter ditemukan'
                 "
-                :error-messages="errors.dokter ? [errors.dokter] : []"
+                v-bind="dokterProps"
               />
             </div>
 
@@ -118,9 +118,7 @@
                 placeholder="Masukkan rencana perawatan"
                 variant="outlined"
                 rows="4"
-                :error-messages="
-                  errors.rencanaPerawatan ? [errors.rencanaPerawatan] : []
-                "
+                v-bind="rencanaPerawatanProps"
               />
             </div>
 
@@ -145,9 +143,10 @@
 </template>
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue';
-import { useForm, useFieldModel } from 'vee-validate';
+import { useForm, type FieldState } from 'vee-validate';
 import { toTypedSchema } from '@vee-validate/yup';
 import { object, string } from 'yup';
+import { format } from 'date-fns';
 import type {
   Branch,
   Doctor,
@@ -199,31 +198,39 @@ const initialFormValues: ReservationFormValues = {
   rencanaPerawatan: '',
 };
 
-const { handleSubmit, errors, resetForm } = useForm<ReservationFormValues>({
-  validationSchema: reservationSchema,
-  initialValues: initialFormValues,
-  validateOnMount: false,
+const vuetifyConfig = <T>(state: FieldState<T>) => ({
+  props: {
+    'error-messages': state.errors,
+  },
 });
 
-const nama = useFieldModel<ReservationFormValues['nama']>('nama');
-const noTelepon = useFieldModel<ReservationFormValues['noTelepon']>(
-  'noTelepon'
+const { handleSubmit, defineField, resetForm } = useForm<ReservationFormValues>(
+  {
+    validationSchema: reservationSchema,
+    initialValues: initialFormValues,
+    validateOnMount: false,
+  }
 );
-const statusPasien = useFieldModel<ReservationFormValues['statusPasien']>(
-  'statusPasien'
+
+const [nama, namaProps] = defineField('nama', vuetifyConfig);
+const [noTelepon, noTeleponProps] = defineField('noTelepon', vuetifyConfig);
+const [statusPasien, statusPasienProps] = defineField(
+  'statusPasien',
+  vuetifyConfig
 );
-const cabangKlinik = useFieldModel<ReservationFormValues['cabangKlinik']>(
-  'cabangKlinik'
+const [cabangKlinik, cabangKlinikProps] = defineField(
+  'cabangKlinik',
+  vuetifyConfig
 );
-const dokter = useFieldModel<ReservationFormValues['dokter']>('dokter');
-const tanggalKedatangan =
-  useFieldModel<ReservationFormValues['tanggalKedatangan']>(
-    'tanggalKedatangan'
-  );
-const rencanaPerawatan =
-  useFieldModel<ReservationFormValues['rencanaPerawatan']>(
-    'rencanaPerawatan'
-  );
+const [dokter, dokterProps] = defineField('dokter', vuetifyConfig);
+const [tanggalKedatangan, tanggalKedatanganProps] = defineField(
+  'tanggalKedatangan',
+  vuetifyConfig
+);
+const [rencanaPerawatan, rencanaPerawatanProps] = defineField(
+  'rencanaPerawatan',
+  vuetifyConfig
+);
 
 const isLoading = ref(false);
 const isSubmitting = ref(false);
@@ -234,6 +241,27 @@ const doctors = ref<Doctor[]>([]);
 const doctorSearchQuery = ref('');
 const useAvailableDoctors = ref(false);
 const selectedTime = ref('');
+
+const formatDateToYMD = (date: Date) => format(date, 'yyyy-MM-dd');
+
+const tanggalKedatanganInput = computed({
+  get() {
+    return tanggalKedatangan.value || null;
+  },
+  set(value: string | Date | null) {
+    if (!value) {
+      tanggalKedatangan.value = '';
+      return;
+    }
+
+    if (value instanceof Date) {
+      tanggalKedatangan.value = formatDateToYMD(value);
+      return;
+    }
+
+    tanggalKedatangan.value = value;
+  },
+});
 
 // Options for status pasien based on backend enum
 const statusPasienOptions = [

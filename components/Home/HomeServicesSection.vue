@@ -36,7 +36,7 @@
         <div class="embla__container">
           <div
             v-for="service in services"
-            :key="service.title"
+            :key="service.id"
             class="embla__slide !bg-center !bg-cover select-none"
             :style="{
               backgroundImage: `url(${service.image})`,
@@ -80,7 +80,8 @@
   </section>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import { getVuetifyTheme } from '~/config/design-tokens';
 import emblaCarouselVue from 'embla-carousel-vue';
 
@@ -92,33 +93,47 @@ onMounted(() => {
   console.log('getVuetifyTheme', getVuetifyTheme());
 });
 
-// const selectedService = ref(0);
+const fallbackImage = '/images/services/service-teeth-scaling.png';
 
-const services = [
+type ServiceSlide = {
+  id: string;
+  title: string;
+  description: string;
+  image: string;
+};
+
+const fallbackServices: ServiceSlide[] = [
   {
+    id: 'fallback-1',
     title: 'Scaling Gigi',
     description:
       'Untuk membersihkan atau menghilangkan karang yang menempel di gigi gusi',
-    image: '/images/services/service-teeth-scaling.png',
+    image: fallbackImage,
   },
   {
+    id: 'fallback-2',
     title: 'Pasang Behel Gigi',
     description:
       'Digunakan untuk memperbaiki posisi gigi yang tidak rata atau tidak sejajar',
-    image: '/images/services/service-teeth-scaling.png',
+    image: fallbackImage,
   },
   {
+    id: 'fallback-3',
     title: 'Perawatan Gigi Anak',
     description: 'Perawatan menyeluruh untuk gigi buah hati anda',
-    image: '/images/services/service-teeth-scaling.png',
+    image: fallbackImage,
   },
   {
+    id: 'fallback-4',
     title: 'Bleaching',
     description:
       'Bertujuan untuk memutihkan gigi yang mengalami perubahan warna',
-    image: '/images/services/service-teeth-scaling.png',
+    image: fallbackImage,
   },
 ];
+
+const services = ref<ServiceSlide[]>([...fallbackServices]);
+const { fetchClinicServices, getClinicServiceImageUrl } = useClinicServices();
 
 const [emblaRef, emblaApi] = emblaCarouselVue({
   loop: false,
@@ -153,19 +168,62 @@ const updateScrollState = () => {
   canScrollNext.value = emblaApi.value.canScrollNext();
 };
 
+const updateScrollSnaps = () => {
+  scrollSnaps.value = services.value.map((_, index) => index);
+};
+
+const reInitializeCarousel = () => {
+  nextTick(() => {
+    if (emblaApi.value) {
+      emblaApi.value.reInit();
+      updateScrollState();
+    }
+  });
+};
+
+const applyServiceData = (slides: ServiceSlide[]) => {
+  services.value = slides;
+  updateScrollSnaps();
+  reInitializeCarousel();
+};
+
+const loadServices = async () => {
+  try {
+    const response = await fetchClinicServices('', 1, 8);
+    const mappedServices = response.data.map((service) => ({
+      id: service.id,
+      title: service.title,
+      description: service.description,
+      image: getClinicServiceImageUrl(service.id),
+    }));
+
+    applyServiceData(mappedServices.length ? mappedServices : fallbackServices);
+  } catch (error) {
+    console.error('Failed to load clinic services:', error);
+    applyServiceData(fallbackServices);
+  }
+};
+
 // Initialize carousel
 onMounted(() => {
   if (!emblaApi.value) return;
 
   // Initialize scroll snaps (for dots)
-  scrollSnaps.value = Array.from(Array(services.length).keys());
+  updateScrollSnaps();
 
   // Update initial state
   updateScrollState();
 
   // Listen for scroll events
   emblaApi.value.on('select', updateScrollState);
-  emblaApi.value.on('reInit', updateScrollState);
+  emblaApi.value.on('reInit', () => {
+    updateScrollSnaps();
+    updateScrollState();
+  });
+});
+
+onMounted(() => {
+  loadServices();
 });
 
 // Cleanup on unmount

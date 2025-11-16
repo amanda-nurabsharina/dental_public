@@ -162,3 +162,35 @@ export interface DoctorDropdownByDateResponse {
   day: string
   doctors: DoctorDropdownItem[]
 }
+
+export interface ClinicService {
+  id: string
+  title: string
+  description: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface ClinicServiceListResponse {
+  data: ClinicService[]
+  page: number
+  limit: number
+  total: number
+}
+
+export interface PromoContent {
+  id: string
+  title: string
+  description: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface PromoContentListResponse {
+  data: PromoContent[]
+  page: number
+  limit: number
+  total: number
+}

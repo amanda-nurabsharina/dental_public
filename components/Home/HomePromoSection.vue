@@ -48,6 +48,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import emblaCarouselVue from 'embla-carousel-vue';
 
 defineOptions({
@@ -65,44 +66,14 @@ const scrollSnaps = ref<number[]>([]);
 const canScrollPrev = ref(false);
 const canScrollNext = ref(true);
 
-// Navigation methods
-const scrollTo = (index: number) => {
-  if (emblaApi.value) emblaApi.value.scrollTo(index);
+type PromoSlide = {
+  id: string;
+  title: string;
+  image: string;
+  link?: string;
 };
 
-// Update scroll state
-const updateScrollState = () => {
-  if (!emblaApi.value) return;
-
-  selectedIndex.value = emblaApi.value.selectedScrollSnap();
-  canScrollPrev.value = emblaApi.value.canScrollPrev();
-  canScrollNext.value = emblaApi.value.canScrollNext();
-};
-
-// Initialize carousel
-onMounted(() => {
-  if (!emblaApi.value) return;
-
-  // Initialize scroll snaps (for dots)
-  scrollSnaps.value = Array.from(Array(promos.length).keys());
-
-  // Update initial state
-  updateScrollState();
-
-  // Listen for scroll events
-  emblaApi.value.on('select', updateScrollState);
-  emblaApi.value.on('reInit', updateScrollState);
-});
-
-// Cleanup on unmount
-onUnmounted(() => {
-  if (emblaApi.value) {
-    emblaApi.value.off('select', updateScrollState);
-    emblaApi.value.off('reInit', updateScrollState);
-  }
-});
-
-const promos = [
+const fallbackPromos: PromoSlide[] = [
   {
     id: 'julid-2025',
     title: 'JULID - Juli Jadi Irit',
@@ -122,12 +93,91 @@ const promos = [
     link: '/promos/juleha-2025',
   },
   {
-    id: 'julehas-2025',
+    id: 'julehas-2025-2',
     title: 'JULEHA - Juli Lebih Hemat',
     image: '/images/promos/julid.png',
     link: '/promos/juleha-2025',
   },
 ];
+
+const promos = ref<PromoSlide[]>([...fallbackPromos]);
+const { fetchPromoContents, getPromoContentImageUrl } = usePromoContent();
+
+// Navigation methods
+const scrollTo = (index: number) => {
+  if (emblaApi.value) emblaApi.value.scrollTo(index);
+};
+
+// Update scroll state
+const updateScrollState = () => {
+  if (!emblaApi.value) return;
+
+  selectedIndex.value = emblaApi.value.selectedScrollSnap();
+  canScrollPrev.value = emblaApi.value.canScrollPrev();
+  canScrollNext.value = emblaApi.value.canScrollNext();
+};
+
+const updateScrollSnaps = () => {
+  scrollSnaps.value = promos.value.map((_, index) => index);
+};
+
+const reInitializeCarousel = () => {
+  nextTick(() => {
+    if (emblaApi.value) {
+      emblaApi.value.reInit();
+      updateScrollState();
+    }
+  });
+};
+
+const applyPromoData = (slides: PromoSlide[]) => {
+  promos.value = slides;
+  updateScrollSnaps();
+  reInitializeCarousel();
+};
+
+const loadPromos = async () => {
+  try {
+    const response = await fetchPromoContents('', 1, 6);
+    const mappedPromos = response.data.map((promo) => ({
+      id: promo.id,
+      title: promo.title,
+      image: getPromoContentImageUrl(promo.id),
+    }));
+
+    applyPromoData(mappedPromos.length ? mappedPromos : fallbackPromos);
+  } catch (error) {
+    console.error('Failed to load promo content:', error);
+    applyPromoData(fallbackPromos);
+  }
+};
+
+// Initialize carousel
+onMounted(() => {
+  if (!emblaApi.value) return;
+
+  // Initialize scroll snaps (for dots)
+  updateScrollSnaps();
+
+  // Update initial state
+  updateScrollState();
+
+  // Listen for scroll events
+  emblaApi.value.on('select', updateScrollState);
+  emblaApi.value.on('reInit', updateScrollState);
+});
+
+onMounted(() => {
+  loadPromos();
+});
+
+// Cleanup on unmount
+onUnmounted(() => {
+  if (emblaApi.value) {
+    emblaApi.value.off('select', updateScrollState);
+    emblaApi.value.off('reInit', updateScrollState);
+  }
+});
 </script>
 
 <style scoped>
