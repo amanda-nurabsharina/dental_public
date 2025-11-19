@@ -85,10 +85,11 @@ export interface DoctorContent {
   doctor_id: string
   doctor_name: string
   doctor_email: string
-  ihs_number: string
-  str_number: string
-  s_ip_number: string
-  fee_percentage: number
+  ihs_number?: string
+  str_number?: string
+  sip_number?: string
+  fee_percentage?: number
+  image?: string | null
   schedules: DoctorSchedule[]
 }
 
@@ -99,6 +100,10 @@ export interface DoctorSchedule {
   shift2_start: string
   shift2_end: string
   is_active: boolean
+}
+
+export interface DoctorContentResponse {
+  data: DoctorContent
 }
 
 export interface DoctorContentListResponse {
@@ -143,6 +148,7 @@ export interface PublicAppointmentListResponse {
 export interface DoctorDropdownItem {
   id: string
   username: string
+  full_name?: string
   email?: string
   role?: string
   is_active?: boolean

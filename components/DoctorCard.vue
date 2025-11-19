@@ -8,6 +8,8 @@
         <img
           :src="doctorImageUrl"
           :alt="`Photo of ${doctorName}`"
+          :width="fallbackImageDimensions.width"
+          :height="fallbackImageDimensions.height"
           class="h-full w-full rounded-lg object-cover group-hover:scale-110 transition-transform duration-500"
           @error="handleImageError"
         />
@@ -29,14 +31,14 @@
           </span>
         </div>
         <!-- Show doctor credentials if available from API -->
-        <div v-if="doctorCredentials" class="space-y-1 text-xs text-gray-600">
+        <!-- <div v-if="doctorCredentials" class="space-y-1 text-xs text-gray-600">
           <div v-if="doctorCredentials.ihs_number">
             IHS: {{ doctorCredentials.ihs_number }}
           </div>
           <div v-if="doctorCredentials.str_number">
             STR: {{ doctorCredentials.str_number }}
           </div>
-        </div>
+        </div> -->
       </div>
     </div>
   </div>
@@ -79,6 +81,10 @@ const { getDoctorImageUrl } = useDoctors();
 
 const imageError = ref(false);
 const fallbackImage = '/images/doctors/doctor2.png';
+const fallbackImageDimensions = {
+  width: 740,
+  height: 493,
+};
 // Computed properties to handle both data formats
 const doctorName = computed(() => {
   if ('name' in props.doctor) {

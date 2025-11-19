@@ -77,12 +77,6 @@
             <div class="space-y-2">
               <div class="text-regular-medium required">
                 Dokter
-                <span
-                  v-if="availableDoctorHint"
-                  class="text-sm text-green-600 font-normal"
-                >
-                  ({{ availableDoctorHint }})
-                </span>
               </div>
               <v-autocomplete
                 v-model="dokter"
@@ -99,6 +93,8 @@
                 item-title="title"
                 item-value="value"
                 clearable
+                :hint="doctorFieldHint"
+                :persistent-hint="Boolean(doctorFieldHint)"
                 :no-data-text="
                   useAvailableDoctors
                     ? 'Tidak ada dokter tersedia pada tanggal/waktu yang dipilih'
@@ -265,8 +261,8 @@ const tanggalKedatanganInput = computed({
 
 // Options for status pasien based on backend enum
 const statusPasienOptions = [
-  { title: 'Menikah', value: 'married' },
-  { title: 'Belum Menikah', value: 'single' },
+  { title: 'Pasien Baru', value: 'married' },
+  { title: 'Pasien Lama', value: 'single' },
 ];
 
 // Computed options for selects
@@ -291,18 +287,11 @@ const dokterOptions = computed(() =>
   }))
 );
 
-const availableDoctorHint = computed(() => {
-  if (!useAvailableDoctors.value || !tanggalKedatangan.value) {
-    return '';
+const doctorFieldHint = computed(() => {
+  if (!tanggalKedatangan.value) {
+    return 'Pilih tanggal kedatangan terlebih dahulu untuk menampilkan daftar dokter.';
   }
-
-  const messageParts = [`tanggal ${tanggalKedatangan.value}`];
-
-  if (selectedTime.value) {
-    messageParts.push(`pukul ${selectedTime.value}`);
-  }
-
-  return `Menampilkan dokter yang tersedia pada ${messageParts.join(' ')}`;
+  return '';
 });
 
 // Submit function with API integration
@@ -363,6 +352,9 @@ const fetchDoctorsWithSearch = async (searchQuery = '') => {
   if (!tanggalKedatangan.value) {
     doctors.value = [];
     useAvailableDoctors.value = false;
+    if (dokter.value) {
+      dokter.value = '';
+    }
     return;
   }
 
@@ -387,6 +379,7 @@ const fetchDoctorsWithSearch = async (searchQuery = '') => {
     }
 
     doctors.value = doctorsData;
+    clearDoctorIfUnavailable();
   } catch (error) {
     doctors.value = [];
     useAvailableDoctors.value = false;
@@ -398,42 +391,33 @@ const fetchDoctorsWithSearch = async (searchQuery = '') => {
 
 const debouncedFetchDoctors = useDebounceFn(fetchDoctorsWithSearch, 300);
 
-// Watch for doctor search query changes
-watch(doctorSearchQuery, (newQuery) => {
-  if (!tanggalKedatangan.value) {
+const clearDoctorIfUnavailable = () => {
+  if (!dokter.value) {
     return;
   }
-  debouncedFetchDoctors(newQuery);
-});
+
+  const stillAvailable = doctors.value.some(
+    (doctorItem) => doctorItem.id === dokter.value
+  );
+
+  if (!stillAvailable) {
+    dokter.value = '';
+  }
+};
 
 // Watch for date changes to fetch available doctors
 watch(tanggalKedatangan, (newDate, oldDate) => {
-  if (dokter.value) {
-    dokter.value = '';
-  }
-
   if (!newDate) {
     selectedTime.value = '';
     useAvailableDoctors.value = false;
     doctors.value = [];
     isLoadingDoctors.value = false;
-  }
-
-  if (newDate && newDate !== oldDate) {
-    debouncedFetchDoctors(doctorSearchQuery.value);
-  }
-});
-
-// Watch for time changes to refetch available doctors
-watch(selectedTime, (newTime, oldTime) => {
-  if (!tanggalKedatangan.value) {
-    return;
-  }
-
-  if (newTime !== oldTime) {
     if (dokter.value) {
       dokter.value = '';
     }
+  }
+
+  if (newDate && newDate !== oldDate) {
     debouncedFetchDoctors(doctorSearchQuery.value);
   }
 });

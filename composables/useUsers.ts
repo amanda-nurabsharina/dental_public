@@ -2,6 +2,7 @@ import type {
   Doctor,
   DoctorContent,
   DoctorContentListResponse,
+  DoctorContentResponse,
   AvailableDoctorsResponse,
   DoctorDropdownItem,
   DoctorDropdownByDateResponse
@@ -20,6 +21,23 @@ interface CreateDoctorContentPayload extends DoctorContentMutationPayload {
   description: string
   doctor_id: string
   is_active?: boolean
+}
+
+const isDoctorContentResponse = (
+  payload: DoctorContent | DoctorContentResponse
+): payload is DoctorContentResponse => {
+  return (
+    typeof payload === 'object' &&
+    payload !== null &&
+    'data' in payload &&
+    typeof (payload as DoctorContentResponse).data === 'object'
+  )
+}
+
+const extractDoctorContent = (
+  payload: DoctorContent | DoctorContentResponse
+): DoctorContent => {
+  return isDoctorContentResponse(payload) ? payload.data : payload
 }
 
 export const useDoctors = () => {
@@ -92,6 +110,16 @@ export const useDoctors = () => {
     }
   }
 
+  const fetchDoctorContentByAssociatedDoctorId = async (doctorUserId: string): Promise<DoctorContent | null> => {
+    try {
+      const response = await fetchDoctorContents('', 1, 500)
+      return response.data.find((doctorContent) => doctorContent.doctor_id === doctorUserId) ?? null
+    } catch (error) {
+      console.error('Error finding doctor content by doctor user id:', error)
+      return null
+    }
+  }
+
   const createDoctorContent = async (payload: CreateDoctorContentPayload): Promise<DoctorContent> => {
     const formData = buildDoctorContentFormData(payload)
 
@@ -119,8 +147,26 @@ export const useDoctors = () => {
   // Fetch doctor by ID
   const fetchDoctorById = async (id: string): Promise<DoctorContent> => {
     try {
-      return await $fetch<DoctorContent>(`${API_BASE_URL}/doctorcontent/${id}`)
+      const response = await $fetch<DoctorContent | DoctorContentResponse>(
+        `${API_BASE_URL}/doctorcontent/${id}`
+      )
+      return extractDoctorContent(response)
     } catch (error) {
+      const fallbackDoctor = await fetchDoctorContentByAssociatedDoctorId(id)
+      if (fallbackDoctor?.id) {
+        try {
+          const fallbackResponse = await $fetch<DoctorContent | DoctorContentResponse>(
+            `${API_BASE_URL}/doctorcontent/${fallbackDoctor.id}`
+          )
+          return extractDoctorContent(fallbackResponse)
+        } catch (fallbackError) {
+          console.error(
+            `Error fetching fallback doctor content with id ${fallbackDoctor.id}:`,
+            fallbackError
+          )
+        }
+        return fallbackDoctor
+      }
       console.error(`Error fetching doctor with id ${id}:`, error)
       throw error
     }
@@ -169,7 +215,7 @@ export const useDoctors = () => {
       user: {
         id: doctor.id,
         profile: {
-          full_name: doctor.username,
+          full_name: doctor.full_name || doctor.username,
           specialization: 'Dokter Gigi',
           phone_number: '',
           email: doctor.email || '',

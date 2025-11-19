@@ -102,8 +102,8 @@
                   >
                     {{
                       appointment.status_patient === 'married'
-                        ? 'Menikah'
-                        : 'Belum Menikah'
+                        ? 'Pasien Baru'
+                        : 'Pasien Lama'
                     }}
                   </v-chip>
                 </v-list-item-title>
@@ -237,11 +237,11 @@
                 >Status Pasien</label
               >
               <p class="text-lg">
-                {{
-                  selectedAppointment.status_patient === 'married'
-                    ? 'Menikah'
-                    : 'Belum Menikah'
-                }}
+                  {{
+                    selectedAppointment.status_patient === 'married'
+                      ? 'Pasien Baru'
+                      : 'Pasien Lama'
+                  }}
               </p>
             </div>
 

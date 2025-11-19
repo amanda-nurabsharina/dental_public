@@ -39,10 +39,7 @@
         </v-alert>
       </div>
 
-      <div
-        v-else-if="isLoading"
-        class="flex justify-center py-16"
-      >
+      <div v-else-if="isLoading" class="flex justify-center py-16">
         <v-progress-circular indeterminate color="primary" size="48" />
       </div>
 
@@ -78,18 +75,14 @@
           <v-btn
             class="!size-12"
             :variant="currentPage === 1 ? 'text' : 'outlined'"
-            :class="[
-              currentPage === 1 ? '!bg-grey-100' : '!border-grey-200',
-            ]"
+            :class="[currentPage === 1 ? '!bg-grey-100' : '!border-grey-200']"
             :ripple="currentPage !== 1"
             @click="goToPreviousPage"
           >
             <IconRightArrowSlim
               size="16"
               class="rotate-180"
-              :class="[
-                currentPage === 1 ? 'text-grey-300' : 'text-black',
-              ]"
+              :class="[currentPage === 1 ? 'text-grey-300' : 'text-black']"
             />
           </v-btn>
         </template>
@@ -98,9 +91,7 @@
             class="!size-12"
             :variant="currentPage === totalPages ? 'text' : 'outlined'"
             :class="[
-              currentPage === totalPages
-                ? '!bg-grey-100'
-                : '!border-grey-200',
+              currentPage === totalPages ? '!bg-grey-100' : '!border-grey-200',
             ]"
             :ripple="currentPage !== totalPages"
             @click="goToNextPage"
@@ -124,106 +115,97 @@
       >
         <div class="flex flex-col md:flex-row gap-8">
           <div
-            class="min-w-[16.625rem] min-h-[23.5rem] rounded-2xl overflow-hidden"
+            class="w-full md:w-[18.5rem] md:min-w-[20rem] md:max-w-[20rem] aspect-[265/376] rounded-2xl overflow-hidden mx-auto md:mx-0 flex-shrink-0"
           >
             <img
               :src="modalDoctorPhoto"
               :alt="modalDoctorName"
+              :width="fallbackImageDimensions.width"
+              :height="fallbackImageDimensions.height"
               class="w-full h-full object-cover object-center"
               @error="modalImageError = true"
             />
           </div>
           <div class="space-y-6">
-        <div class="space-y-4">
-          <div class="space-y-2">
-            <div class="text-regular-bold text-primary">
-              {{ modalDoctorBadge }}
-            </div>
-            <div class="heading-5">
-              {{ modalDoctorName }}
-            </div>
-            <p class="text-regular-normal">
-              {{
-                modalDoctorSpecialist ||
-                'Informasi deskripsi dokter belum tersedia.'
-              }}
-            </p>
-          </div>
+            <div class="space-y-4">
+              <div class="space-y-2">
+                <div class="text-regular-bold text-primary">
+                  {{ modalDoctorBadge }}
+                </div>
+                <div class="heading-5">
+                  {{ modalDoctorName }}
+                </div>
+                <p class="text-regular-normal">
+                  {{
+                    modalDoctorSpecialist ||
+                    'Informasi deskripsi dokter belum tersedia.'
+                  }}
+                </p>
+              </div>
 
-          <div
-            v-if="modalDoctorEmail"
-            class="text-sm text-gray-600"
-          >
-            Email:
-            <a
-              class="text-primary underline"
-              :href="`mailto:${modalDoctorEmail}`"
-            >
-              {{ modalDoctorEmail }}
-            </a>
-          </div>
+              <!-- <div v-if="modalDoctorEmail" class="text-sm text-gray-600">
+                Email:
+                <a
+                  class="text-primary underline"
+                  :href="`mailto:${modalDoctorEmail}`"
+                >
+                  {{ modalDoctorEmail }}
+                </a>
+              </div> -->
 
-          <div
-            v-if="modalDoctorCredentials.length"
-            class="space-y-1 text-sm text-gray-600"
-          >
-            <div
-              v-for="credential in modalDoctorCredentials"
-              :key="credential.label"
-              class="flex items-center gap-x-2"
-            >
-              <span class="font-medium text-gray-700">
-                {{ credential.label }}:
-              </span>
-              <span>{{ credential.value }}</span>
-            </div>
-          </div>
+              <!-- <div
+                v-if="modalDoctorCredentials.length"
+                class="space-y-1 text-sm text-gray-600"
+              >
+                <div
+                  v-for="credential in modalDoctorCredentials"
+                  :key="credential.label"
+                  class="flex items-center gap-x-2"
+                >
+                  <span class="font-medium text-gray-700">
+                    {{ credential.label }}:
+                  </span>
+                  <span>{{ credential.value }}</span>
+                </div>
+              </div> -->
 
-          <div
-            v-if="modalDoctorFee"
-            class="text-sm text-gray-600"
-          >
-            Fee Persentase:
-            <span class="font-medium text-gray-800">
-              {{ modalDoctorFee }}
-            </span>
-          </div>
+              <!-- <div v-if="modalDoctorFee" class="text-sm text-gray-600">
+                Fee Persentase:
+                <span class="font-medium text-gray-800">
+                  {{ modalDoctorFee }}
+                </span>
+              </div> -->
             </div>
             <div class="space-y-3">
-            <div class="flex items-center justify-between">
-              <h3 class="text-lg font-semibold text-gray-900">
-                Jadwal Praktek
-              </h3>
-              <v-chip
-                :color="isDoctorActive ? 'green' : 'red'"
-                variant="tonal"
-                size="small"
-                class="font-semibold"
-              >
-                {{ isDoctorActive ? 'Aktif' : 'Tidak Aktif' }}
-              </v-chip>
-            </div>
-
-            <div
-              v-if="hasSchedules"
-              class="space-y-2"
-            >
-              <div
-                v-for="(schedule, index) in modalDoctorSchedules"
-                :key="`${schedule.day_of_week}-${index}`"
-                class="flex justify-between items-center py-2"
-              >
-                <span class="text-gray-700">
-                  {{ formatDayLabel(schedule.day_of_week) }}
-                </span>
-                <span class="font-semibold text-green-600">
-                  {{ formatScheduleRange(schedule) }}
-                </span>
+              <div class="flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-900">
+                  Jadwal Praktek
+                </h3>
+                <v-chip
+                  :color="isDoctorActive ? 'green' : 'red'"
+                  variant="tonal"
+                  size="small"
+                  class="font-semibold"
+                >
+                  {{ isDoctorActive ? 'Aktif' : 'Tidak Aktif' }}
+                </v-chip>
               </div>
-            </div>
-            <p v-else class="text-sm text-gray-500">
-              Jadwal belum tersedia.
-            </p>
+
+              <div v-if="hasSchedules" class="space-y-2">
+                <div
+                  v-for="(schedule, index) in modalDoctorSchedules"
+                  :key="`${schedule.day_of_week}-${index}`"
+                  class="flex justify-between items-center py-2"
+                >
+                  <span class="text-gray-700">
+                    {{ formatDayLabel(schedule.day_of_week) }}
+                  </span>
+                  <span class="font-semibold text-green-600">
+                    {{ formatScheduleRange(schedule) }}
+                  </span>
+                </div>
+              </div>
+              <p v-else class="text-sm text-gray-500">Jadwal belum tersedia.</p>
             </div>
           </div>
         </div>
@@ -310,10 +292,7 @@ const resultSummary = computed(() => {
 const handleSearch = () => {
   const normalizedQuery = searchQuery.value.trim();
 
-  if (
-    normalizedQuery === appliedSearch.value &&
-    currentPage.value === 1
-  ) {
+  if (normalizedQuery === appliedSearch.value && currentPage.value === 1) {
     return;
   }
 
@@ -347,9 +326,7 @@ watch(showDoctorModal, (isOpen) => {
   }
 });
 
-const modalDoctorName = computed(
-  () => selectedDoctor.value?.doctor_name ?? ''
-);
+const modalDoctorName = computed(() => selectedDoctor.value?.doctor_name ?? '');
 const modalDoctorSpecialist = computed(
   () => selectedDoctor.value?.description ?? ''
 );
@@ -359,9 +336,14 @@ const modalDoctorBadge = computed(
 const modalDoctorEmail = computed(
   () => selectedDoctor.value?.doctor_email ?? ''
 );
+const fallbackImage = '/images/doctors/doctor2.png';
+const fallbackImageDimensions = {
+  width: 493,
+  height: 740,
+};
 const modalDoctorPhoto = computed(() => {
   if (!selectedDoctor.value || modalImageError.value) {
-    return '/images/doctors/doctor2.png';
+    return fallbackImage;
   }
   return getDoctorImageUrl(selectedDoctor.value.id);
 });
@@ -404,13 +386,9 @@ const modalDoctorFee = computed(() => {
   return `${selectedDoctor.value.fee_percentage}%`;
 });
 
-const hasSchedules = computed(
-  () => modalDoctorSchedules.value.length > 0
-);
+const hasSchedules = computed(() => modalDoctorSchedules.value.length > 0);
 
-const isDoctorActive = computed(
-  () => selectedDoctor.value?.is_active ?? false
-);
+const isDoctorActive = computed(() => selectedDoctor.value?.is_active ?? false);
 
 const formatDayLabel = (dayOfWeek: string) => {
   const dayMap: Record<string, string> = {
