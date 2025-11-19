@@ -336,7 +336,7 @@ const modalDoctorBadge = computed(
 const modalDoctorEmail = computed(
   () => selectedDoctor.value?.doctor_email ?? ''
 );
-const fallbackImage = '/images/doctors/doctor2.png';
+const fallbackImage = '/images/doctors/doctor-mascot.webp';
 const fallbackImageDimensions = {
   width: 493,
   height: 740,

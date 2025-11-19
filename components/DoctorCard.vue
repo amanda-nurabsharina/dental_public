@@ -80,7 +80,7 @@ const handleClick = () => {
 const { getDoctorImageUrl } = useDoctors();
 
 const imageError = ref(false);
-const fallbackImage = '/images/doctors/doctor2.png';
+const fallbackImage = '/images/doctors/doctor-mascot.webp';
 const fallbackImageDimensions = {
   width: 740,
   height: 493,

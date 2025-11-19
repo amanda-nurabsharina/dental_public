@@ -82,7 +82,7 @@ const isLoading = ref(false);
 const doctorDetails = ref<DoctorContent | null>(null);
 const errorMessage = ref('');
 const imageError = ref(false);
-const fallbackImage = '/images/doctors/doctor2.png';
+const fallbackImage = '/images/doctors/doctor-mascot.webp';
 const fallbackImageDimensions = {
   width: 740,
   height: 493,
@@ -90,9 +90,7 @@ const fallbackImageDimensions = {
 const shouldDisplayDoctorDetails = computed(() => Boolean(props.doctorId));
 const EMPTY_PLACEHOLDER = '-';
 
-const getValueOrPlaceholder = (
-  ...values: Array<string | null | undefined>
-) => {
+const getValueOrPlaceholder = (...values: Array<string | null | undefined>) => {
   for (const value of values) {
     const trimmed = value?.toString().trim();
     if (trimmed) {
@@ -156,9 +154,7 @@ const doctorRating = computed(() => {
   const numericRating =
     typeof ratingSource.rating === 'number'
       ? ratingSource.rating
-      : Number.parseFloat(
-          String(ratingSource.rating).replace(',', '.').trim()
-        );
+      : Number.parseFloat(String(ratingSource.rating).replace(',', '.').trim());
 
   if (Number.isNaN(numericRating)) {
     return '';
@@ -169,9 +165,8 @@ const doctorRating = computed(() => {
 
 const activeSchedules = computed<DoctorSchedule[]>(
   () =>
-    doctorDetails.value?.schedules?.filter(
-      (schedule) => schedule.is_active
-    ) ?? []
+    doctorDetails.value?.schedules?.filter((schedule) => schedule.is_active) ??
+    []
 );
 const hasSchedules = computed(() => activeSchedules.value.length > 0);
 
@@ -195,6 +190,10 @@ const formatScheduleRange = (schedule: DoctorSchedule) => {
   return shifts.length ? shifts.join(' | ') : 'Jam belum ditentukan';
 };
 const doctorImageUrl = computed(() => {
+  if (imageError.value) {
+    return fallbackImage;
+  }
+
   if (doctorDetails.value?.id) {
     return getDoctorImageUrl(doctorDetails.value.id);
   }
@@ -240,7 +239,3 @@ watch(
 </script>
 
 <style scoped></style>
-
-
-
-
