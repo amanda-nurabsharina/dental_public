@@ -138,7 +138,7 @@ export interface CreatePublicAppointmentRequest {
   treatment_plan: string
   appointment_date: string
   name: string
-  status_patient: 'married' | 'single'
+  status_patient: 'Pasien Baru' | 'Pasien Lama'
   description: string
 }
 

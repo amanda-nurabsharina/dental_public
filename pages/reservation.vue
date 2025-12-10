@@ -180,7 +180,7 @@ import type {
   CreatePublicAppointmentRequest,
 } from '~/composables/useApi';
 
-type PatientStatus = 'married' | 'single';
+type PatientStatus = 'Pasien Baru' | 'Pasien Lama';
 type ReservationFormValues = {
   nama: string;
   noTelepon: string;
@@ -204,7 +204,7 @@ const reservationSchema = toTypedSchema(
       .required('No telepon wajib diisi')
       .matches(/^[0-9+][0-9\s-]{7,15}$/, 'Format nomor telepon tidak valid'),
     statusPasien: string()
-      .oneOf(['married', 'single'], 'Status pasien tidak valid')
+      .oneOf(['Pasien Baru', 'Pasien Lama'], 'Status pasien tidak valid')
       .required('Status pasien wajib dipilih'),
     cabangKlinik: string().trim().required('Cabang klinik wajib dipilih'),
     dokter: string().trim().required('Dokter wajib dipilih'),
@@ -293,8 +293,8 @@ const tanggalKedatanganInput = computed({
 
 // Options for status pasien based on backend enum
 const statusPasienOptions = [
-  { title: 'Pasien Baru', value: 'married' },
-  { title: 'Pasien Lama', value: 'single' },
+  { title: 'Pasien Baru', value: 'Pasien Baru' },
+  { title: 'Pasien Lama', value: 'Pasien Lama' },
 ];
 
 // Time options for practice schedule filtering (08:00 - 21:00)
