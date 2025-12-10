@@ -7,18 +7,20 @@ import type {
 export const useBranches = () => {
   const { API_BASE_URL } = useApi()
 
-  // Fetch all branches for dropdown from the new API endpoint
+  // Fetch all branches for dropdown from the public appointment API endpoint
   const fetchBranches = async (): Promise<Branch[]> => {
     try {
-      const response = await $fetch<BranchDropdownResponse>(`${API_BASE_URL}/branch/branchDropdown`)
+      // Use the new public appointment branches dropdown endpoint
+      const response = await $fetch<{ data: Branch[] }>(`${API_BASE_URL}/publicappointment/branches/dropdown`)
       
-      if (response && !response.error && response.data) {
-        // Transform BranchDropdownItem to Branch format for compatibility
-        return response.data.map((branchItem): Branch => ({
-          id: branchItem.id,
-          name: branchItem.name,
-          address: '', // Not available in dropdown API
-          phone_number: '', // Not available in dropdown API
+      if (response && response.data) {
+        return response.data.map((branch): Branch => ({
+          id: branch.id,
+          name: branch.name,
+          address: branch.address || '',
+          phone_number: branch.phone_number || '',
+          description: branch.description || '',
+          email: branch.email || '',
         }))
       }
       

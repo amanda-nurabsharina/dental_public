@@ -28,6 +28,8 @@ export interface Branch {
   name: string
   address?: string
   phone_number?: string
+  description?: string
+  email?: string
   created_at?: string
   updated_at?: string
 }

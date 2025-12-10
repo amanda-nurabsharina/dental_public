@@ -73,6 +73,37 @@
               />
             </div>
 
+            <!-- Waktu Kedatangan -->
+            <div class="space-y-2">
+              <div class="text-regular-medium">Waktu Kedatangan (Opsional)</div>
+              <v-text-field
+                v-model="selectedTime"
+                placeholder="Pilih waktu kedatangan"
+                variant="outlined"
+                type="time"
+                clearable
+                prepend-inner-icon="mdi-clock-outline"
+                :disabled="!tanggalKedatangan"
+                hint="Pilih waktu untuk filter dokter yang tersedia"
+                persistent-hint
+                @focus="onTimeFocus"
+              >
+                <v-menu
+                  v-model="showTimeMenu"
+                  :close-on-content-click="false"
+                  activator="parent"
+                  min-width="0"
+                >
+                  <v-time-picker
+                    v-model="selectedTime"
+                    format="24hr"
+                    color="primary"
+                    @update:minute="onMinutePicked"
+                  />
+                </v-menu>
+              </v-text-field>
+            </div>
+
             <!-- Dokter -->
             <div class="space-y-2">
               <div class="text-regular-medium required">
@@ -237,6 +268,7 @@ const doctors = ref<Doctor[]>([]);
 const doctorSearchQuery = ref('');
 const useAvailableDoctors = ref(false);
 const selectedTime = ref('');
+const showTimeMenu = ref(false);
 
 const formatDateToYMD = (date: Date) => format(date, 'yyyy-MM-dd');
 
@@ -265,6 +297,24 @@ const statusPasienOptions = [
   { title: 'Pasien Lama', value: 'single' },
 ];
 
+// Time options for practice schedule filtering (08:00 - 21:00)
+const timeOptions = [
+  { title: '08:00', value: '08:00' },
+  { title: '09:00', value: '09:00' },
+  { title: '10:00', value: '10:00' },
+  { title: '11:00', value: '11:00' },
+  { title: '12:00', value: '12:00' },
+  { title: '13:00', value: '13:00' },
+  { title: '14:00', value: '14:00' },
+  { title: '15:00', value: '15:00' },
+  { title: '16:00', value: '16:00' },
+  { title: '17:00', value: '17:00' },
+  { title: '18:00', value: '18:00' },
+  { title: '19:00', value: '19:00' },
+  { title: '20:00', value: '20:00' },
+  { title: '21:00', value: '21:00' },
+];
+
 // Computed options for selects
 const cabangKlinikOptions = computed(() =>
   branches.value.map((branch) => ({
@@ -288,6 +338,12 @@ const dokterOptions = computed(() =>
 );
 
 const doctorFieldHint = computed(() => {
+  if (!cabangKlinik.value && !tanggalKedatangan.value) {
+    return 'Pilih cabang klinik dan tanggal kedatangan terlebih dahulu untuk menampilkan daftar dokter.';
+  }
+  if (!cabangKlinik.value) {
+    return 'Pilih cabang klinik terlebih dahulu untuk menampilkan daftar dokter.';
+  }
   if (!tanggalKedatangan.value) {
     return 'Pilih tanggal kedatangan terlebih dahulu untuk menampilkan daftar dokter.';
   }
@@ -349,7 +405,15 @@ const submitReservation = handleSubmit(
 
 // Debounced doctor search function
 const fetchDoctorsWithSearch = async (searchQuery = '') => {
-  if (!tanggalKedatangan.value) {
+  console.log('[DEBUG] fetchDoctorsWithSearch called with:', {
+    tanggalKedatangan: tanggalKedatangan.value,
+    cabangKlinik: cabangKlinik.value,
+    selectedTime: selectedTime.value,
+  });
+
+  // Require both date and branch to fetch doctors
+  if (!tanggalKedatangan.value || !cabangKlinik.value) {
+    console.log('[DEBUG] Missing required fields, skipping fetch');
     doctors.value = [];
     useAvailableDoctors.value = false;
     if (dokter.value) {
@@ -364,10 +428,19 @@ const fetchDoctorsWithSearch = async (searchQuery = '') => {
     const trimmedSearch = searchQuery.trim().toLowerCase();
     const sanitizedTime = selectedTime.value ? selectedTime.value.trim() : '';
 
+    console.log('[DEBUG] Calling fetchDoctorsForDropdownByDate with:', {
+      date: tanggalKedatangan.value,
+      time: sanitizedTime || undefined,
+      branchId: cabangKlinik.value,
+    });
+
+    // Pass branchId to fetch doctors from the correct branch database
     doctorsData = await fetchDoctorsForDropdownByDate(
       tanggalKedatangan.value,
-      sanitizedTime || undefined
+      sanitizedTime || undefined,
+      cabangKlinik.value // Pass the selected branch ID
     );
+    console.log('[DEBUG] Received doctors:', doctorsData);
     useAvailableDoctors.value = true;
 
     if (trimmedSearch) {
@@ -390,6 +463,27 @@ const fetchDoctorsWithSearch = async (searchQuery = '') => {
 };
 
 const debouncedFetchDoctors = useDebounceFn(fetchDoctorsWithSearch, 300);
+
+// Handler for time input focus - select text
+const onTimeFocus = (e: FocusEvent) => {
+  const el = e.target as HTMLInputElement | null;
+  if (el) requestAnimationFrame(() => el.select());
+};
+
+// Handler when minute is picked - close menu and refresh doctors
+const onMinutePicked = () => {
+  showTimeMenu.value = false;
+  if (tanggalKedatangan.value && cabangKlinik.value) {
+    debouncedFetchDoctors(doctorSearchQuery.value);
+  }
+};
+
+// Watch for selectedTime changes to refresh doctors
+watch(selectedTime, (newTime, oldTime) => {
+  if (newTime !== oldTime && tanggalKedatangan.value && cabangKlinik.value) {
+    debouncedFetchDoctors(doctorSearchQuery.value);
+  }
+});
 
 const clearDoctorIfUnavailable = () => {
   if (!dokter.value) {
@@ -419,6 +513,26 @@ watch(tanggalKedatangan, (newDate, oldDate) => {
 
   if (newDate && newDate !== oldDate) {
     debouncedFetchDoctors(doctorSearchQuery.value);
+  }
+});
+
+// Watch for branch changes to refresh available doctors
+watch(cabangKlinik, (newBranch, oldBranch) => {
+  if (!newBranch) {
+    doctors.value = [];
+    useAvailableDoctors.value = false;
+    if (dokter.value) {
+      dokter.value = '';
+    }
+    return;
+  }
+
+  // Refresh doctors when branch changes
+  if (newBranch !== oldBranch) {
+    dokter.value = ''; // Clear selected doctor when branch changes
+    if (tanggalKedatangan.value) {
+      debouncedFetchDoctors(doctorSearchQuery.value);
+    }
   }
 });
 

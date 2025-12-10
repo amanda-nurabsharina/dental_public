@@ -223,19 +223,28 @@ export const useDoctors = () => {
       }
     }))
 
-  // Fetch doctors from the public appointment dropdown endpoint
-  const fetchDoctorsForDropdown = async (): Promise<Doctor[]> => {
+  // Fetch doctors from the public appointment dropdown endpoint with optional branch filter
+  const fetchDoctorsForDropdown = async (branchId?: string): Promise<Doctor[]> => {
     try {
-      const response = await $fetch<DoctorDropdownItem[]>(`${API_BASE_URL}/publicappointment/doctors/dropdown`)
+      const params = new URLSearchParams()
+      if (branchId) {
+        params.append('branch_id', branchId)
+      }
+      
+      const url = branchId 
+        ? `${API_BASE_URL}/publicappointment/doctors/dropdown?${params.toString()}`
+        : `${API_BASE_URL}/publicappointment/doctors/dropdown`
+      
+      const response = await $fetch<{ data: DoctorDropdownItem[] }>(url)
 
-      return transformDropdownDoctors(response)
+      return transformDropdownDoctors(response?.data ?? [])
     } catch (error) {
       console.error('Error fetching doctors for dropdown:', error)
       throw error
     }
   }
 
-  const fetchDoctorsForDropdownByDate = async (date: string, time?: string): Promise<Doctor[]> => {
+  const fetchDoctorsForDropdownByDate = async (date: string, time?: string, branchId?: string): Promise<Doctor[]> => {
     if (!date) {
       throw new Error('Date is required to fetch doctors for dropdown by date')
     }
@@ -245,16 +254,25 @@ export const useDoctors = () => {
       if (time) {
         params.append('time', time)
       }
+      if (branchId) {
+        params.append('branch_id', branchId)
+      }
 
-      const response = await $fetch<DoctorDropdownByDateResponse | DoctorDropdownItem[]>(
-        `${API_BASE_URL}/publicappointment/doctors/dropdownwithfilterdate?${params.toString()}`
-      )
+      const url = `${API_BASE_URL}/publicappointment/doctors/dropdownwithfilterdate?${params.toString()}`
+      console.log('[DEBUG] Fetching doctors from:', url)
+
+      const response = await $fetch<DoctorDropdownByDateResponse | DoctorDropdownItem[]>(url)
+      console.log('[DEBUG] Raw response:', response)
 
       const doctorItems = Array.isArray(response)
         ? response
         : response?.doctors ?? []
 
-      return transformDropdownDoctors(doctorItems)
+      console.log('[DEBUG] Extracted doctor items:', doctorItems)
+      const result = transformDropdownDoctors(doctorItems)
+      console.log('[DEBUG] Transformed doctors:', result)
+
+      return result
     } catch (error) {
       console.error('Error fetching doctors for dropdown with date filter:', error)
       throw error

@@ -42,6 +42,8 @@ export default defineNuxtConfig({
       styles: {
         configFile: 'assets/css/components.scss',
       },
+      // Enable Vuetify Labs components
+      labComponents: ['VTimePicker', 'VDateInput'],
     },
     vuetifyOptions: {
       theme: {
