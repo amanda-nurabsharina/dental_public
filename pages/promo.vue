@@ -2,9 +2,27 @@
   <div>
     <BaseBreadcrumb />
     <div class="container mt-14 mb-16">
-      <p class="text-regular-light text-neutral-60 mb-10">
-        {{ resultSummary }}
-      </p>
+      <div class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
+        <p class="text-regular-light text-neutral-60">
+          {{ resultSummary }}
+        </p>
+        <div class="flex w-full md:w-auto">
+          <v-select
+            v-model="selectedBranch"
+            :items="branches"
+            item-title="name"
+            item-value="id"
+            placeholder="Pilih Cabang"
+            class="md:max-w-[15rem] w-full"
+            variant="outlined"
+            density="comfortable"
+            hide-details
+            clearable
+            bg-color="white"
+            color="primary"
+          />
+        </div>
+      </div>
 
       <div v-if="loadError" class="mb-6">
         <v-alert type="error" variant="tonal">
@@ -30,12 +48,19 @@
           v-for="promo in promos"
           :key="promo.id"
           class="bg-white rounded-lg shadow-md overflow-hidden"
-          role="button"
-          tabindex="0"
-          @click="handlePromoClick(promo)"
-          @keyup.enter="handlePromoClick(promo)"
         >
-          <img :src="promo.image" :alt="promo.title" class="w-full h-auto" />
+          <div 
+             class="cursor-pointer"
+             role="button"
+             tabindex="0"
+             @click="handlePromoClick(promo)"
+             @keyup.enter="handlePromoClick(promo)"
+          >
+            <img :src="promo.image" :alt="promo.title" class="w-full h-auto" />
+            <div v-if="promo.branch_name" class="p-3 bg-gray-50 border-t">
+               <span class="text-sm text-gray-600 font-medium">Cabang: {{ promo.branch_name }}</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -73,7 +98,7 @@
           >
             <IconRightArrowSlim
               size="16"
-              :color-class="[page === length ? 'text-grey-300' : 'text-black']"
+              :class="[page === length ? 'text-grey-300' : 'text-black']"
             />
           </v-btn>
         </template>
@@ -99,7 +124,7 @@
           <div class="flex-1 space-y-4">
             <div>
               <p class="text-sm text-secondary-2 font-semibold mb-1">
-                Promo Klinik
+                Promo Klinik <span v-if="selectedPromo.branch_name" class="font-normal text-gray-500">- {{ selectedPromo.branch_name }}</span>
               </p>
               <h3 class="text-2xl font-semibold text-gray-900">
                 {{ selectedPromo.title }}
@@ -123,6 +148,7 @@ type PromoCard = {
   title: string;
   image: string;
   description: string;
+  branch_name?: string;
 };
 
 const DEFAULT_LIMIT = 10;
@@ -155,7 +181,12 @@ const fallbackPromos: PromoCard[] = [
   },
 ];
 
-const { fetchPromoContents, getPromoContentImageUrl } = usePromoContent();
+const { fetchMultiBranchPromoContents, getPromoContentImageUrl } = usePromoContent();
+const { fetchBranches } = useBranches();
+
+// Filter state
+const branches = ref<any[]>([]);
+const selectedBranch = ref<string | null>(null);
 
 const promos = ref<PromoCard[]>([...fallbackPromos]);
 const totalItems = ref(fallbackPromos.length);
@@ -166,6 +197,15 @@ const loadError = ref<string | null>(null);
 const showPromoModal = ref(false);
 const selectedPromo = ref<PromoCard | null>(null);
 const modalImageError = ref(false);
+
+const loadBranches = async () => {
+  try {
+    const data = await fetchBranches();
+    branches.value = data;
+  } catch (error) {
+    console.error('Error fetching branches:', error);
+  }
+};
 
 const applyPromoData = (
   items: PromoCard[],
@@ -182,12 +222,19 @@ const fetchPromos = async () => {
   loadError.value = null;
 
   try {
-    const response = await fetchPromoContents('', page.value, DEFAULT_LIMIT);
-    const mappedPromos: PromoCard[] = response.data.map((promo) => ({
+    const response = await fetchMultiBranchPromoContents(
+      '', 
+      page.value, 
+      DEFAULT_LIMIT,
+      selectedBranch.value || undefined
+    );
+
+    const mappedPromos: PromoCard[] = (response.data || []).map((promo) => ({
       id: promo.id,
       title: promo.title,
       image: getPromoContentImageUrl(promo.id),
       description: promo.description,
+      branch_name: promo.branch_name,
     }));
 
     const limit = response.limit || DEFAULT_LIMIT;
@@ -211,10 +258,14 @@ const fetchPromos = async () => {
   }
 };
 
-onMounted(fetchPromos);
+onMounted(() => {
+  loadBranches();
+  fetchPromos();
+});
 
-watch(page, (newPage, oldPage) => {
-  if (newPage !== oldPage) {
+watch([page, selectedBranch], ([newPage, newBranch], [oldPage, oldBranch]) => {
+  if (newPage !== oldPage || newBranch !== oldBranch) {
+    if (newBranch !== oldBranch) page.value = 1;
     fetchPromos();
   }
 });

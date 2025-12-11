@@ -106,8 +106,37 @@ export const useClinicServices = () => {
     return `${API_BASE_URL}/clinicservicescontent/image/${id}`;
   };
 
+  const fetchMultiBranchClinicServices = async (
+    search = '',
+    page = 1,
+    limit = 12,
+    branchId?: string
+  ): Promise<ClinicServiceListResponse> => {
+    const params = new URLSearchParams({
+      search,
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+
+    if (branchId) {
+      params.append('branch_id', branchId);
+    }
+
+    const response = await $fetch<any>(
+      `${API_BASE_URL}/publicappointment/multibranch/services?${params.toString()}`
+    );
+
+    return {
+      data: response.data,
+      page: response.page,
+      limit: response.limit,
+      total: response.total
+    };
+  };
+
   return {
     fetchClinicServices,
+    fetchMultiBranchClinicServices,
     fetchClinicServiceById,
     createClinicService,
     updateClinicService,

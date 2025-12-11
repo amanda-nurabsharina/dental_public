@@ -93,6 +93,8 @@ export interface DoctorContent {
   fee_percentage?: number
   image?: string | null
   schedules: DoctorSchedule[]
+  branch_id?: string
+  branch_name?: string
 }
 
 export interface DoctorSchedule {
@@ -178,6 +180,8 @@ export interface ClinicService {
   is_active: boolean
   created_at: string
   updated_at: string
+  branch_id?: string
+  branch_name?: string
 }
 
 export interface ClinicServiceListResponse {
@@ -194,6 +198,8 @@ export interface PromoContent {
   is_active: boolean
   created_at: string
   updated_at: string
+  branch_id?: string
+  branch_name?: string
 }
 
 export interface PromoContentListResponse {

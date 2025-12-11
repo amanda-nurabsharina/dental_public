@@ -4,15 +4,29 @@
     <div class="container mt-14 mb-16">
       <h1 class="sr-only">List Dokter</h1>
       <div
-        class="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-10"
+        class="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-10 gap-y-4"
       >
         <p class="text-regular-light text-neutral-60">
           {{ resultSummary }}
         </p>
-        <div class="flex w-full flex-1 gap-x-3.5 lg:justify-end grow">
+        <div class="flex flex-col md:flex-row w-full flex-1 gap-3.5 lg:justify-end grow">
+          <v-select
+            v-model="selectedBranch"
+            :items="branches"
+            item-title="name"
+            item-value="id"
+            placeholder="Pilih Cabang"
+            class="md:max-w-[15rem] w-full"
+            variant="outlined"
+            density="comfortable"
+            hide-details
+            clearable
+            bg-color="white"
+            color="primary"
+          />
           <v-text-field
             v-model="searchQuery"
-            class="lg:!max-w-[20.5rem] !w-full !flex-1"
+            class="lg:!max-w-[20.5rem] !w-full"
             placeholder="Ketikan kata kunci mu..."
             color="grey-200"
             outlined
@@ -134,6 +148,9 @@
                 </div>
                 <div class="heading-5">
                   {{ modalDoctorName }}
+                  <span v-if="selectedDoctor?.branch_name" class="ml-2 text-sm text-gray-500 font-normal">
+                    ({{ selectedDoctor.branch_name }})
+                  </span>
                 </div>
                 <p class="text-regular-normal">
                   {{
@@ -219,13 +236,18 @@ import { ref, computed, watch, onMounted } from 'vue';
 import { useSeoMeta } from '#imports';
 import type { DoctorContent, DoctorSchedule } from '~/composables/useApi';
 
-const { fetchDoctorContents, getDoctorImageUrl } = useDoctors();
+const { fetchMultiBranchDoctors, getDoctorImageUrl } = useDoctors();
+const { fetchBranches } = useBranches();
 
 // Pagination & search state
 const DEFAULT_LIMIT = 12;
 const searchQuery = ref('');
 const appliedSearch = ref('');
 const currentPage = ref(1);
+
+// Filter state
+const branches = ref<any[]>([]);
+const selectedBranch = ref<string | null>(null);
 
 // Data state
 const doctorContents = ref<DoctorContent[]>([]);
@@ -238,18 +260,28 @@ const showDoctorModal = ref(false);
 const selectedDoctor = ref<DoctorContent | null>(null);
 const modalImageError = ref(false);
 
+const loadBranches = async () => {
+  try {
+    const data = await fetchBranches();
+    branches.value = data;
+  } catch (error) {
+    console.error('Error fetching branches:', error);
+  }
+};
+
 const fetchDoctors = async () => {
   isLoading.value = true;
   loadError.value = null;
 
   try {
-    const response = await fetchDoctorContents(
+    const response = await fetchMultiBranchDoctors(
       appliedSearch.value,
       currentPage.value,
-      DEFAULT_LIMIT
+      DEFAULT_LIMIT,
+      selectedBranch.value || undefined
     );
 
-    doctorContents.value = response.data;
+    doctorContents.value = response.data || [];
     totalDoctors.value = response.total;
   } catch (error) {
     console.error('Error fetching doctor contents:', error);
@@ -262,10 +294,14 @@ const fetchDoctors = async () => {
   }
 };
 
-onMounted(fetchDoctors);
+onMounted(() => {
+  loadBranches();
+  fetchDoctors();
+});
 
-watch(currentPage, (newPage, oldPage) => {
-  if (newPage !== oldPage) {
+watch([currentPage, selectedBranch], ([newPage, newBranch], [oldPage, oldBranch]) => {
+  if (newPage !== oldPage || newBranch !== oldBranch) {
+    if (newBranch !== oldBranch) currentPage.value = 1;
     fetchDoctors();
   }
 });
@@ -369,7 +405,7 @@ const modalDoctorCredentials = computed(() => {
     },
     {
       label: 'SIP',
-      value: selectedDoctor.value.s_ip_number,
+      value: selectedDoctor.value.sip_number,
     },
   ].filter((credential) => credential.value);
 });

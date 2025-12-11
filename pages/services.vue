@@ -4,15 +4,29 @@
     <div class="container mt-14 mb-16">
       <h1 class="sr-only">Layanan Klinik</h1>
       <div
-        class="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-10"
+        class="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-10 gap-y-4"
       >
         <p class="text-regular-light text-neutral-60">
           {{ resultSummary }}
         </p>
-        <div class="flex w-full flex-1 gap-x-3.5 lg:justify-end grow">
+        <div class="flex flex-col md:flex-row w-full flex-1 gap-3.5 lg:justify-end grow">
+          <v-select
+            v-model="selectedBranch"
+            :items="branches"
+            item-title="name"
+            item-value="id"
+            placeholder="Pilih Cabang"
+            class="md:max-w-[15rem] w-full"
+            variant="outlined"
+            density="comfortable"
+            hide-details
+            clearable
+            bg-color="white"
+            color="primary"
+          />
           <v-text-field
             v-model="searchQuery"
-            class="lg:!max-w-[20.5rem] !w-full !flex-1"
+            class="lg:!max-w-[20.5rem] !w-full"
             placeholder="Cari layanan perawatan..."
             color="grey-200"
             outlined
@@ -148,7 +162,7 @@
             <div class="flex items-start justify-between gap-4">
               <div>
                 <p class="text-sm text-secondary-2 font-semibold mb-1">
-                  Layanan Klinik
+                  Layanan Klinik <span v-if="selectedService.branch_name" class="font-normal text-gray-500">- {{ selectedService.branch_name }}</span>
                 </p>
                 <h3 class="text-2xl font-semibold text-gray-900">
                   {{ selectedService.title }}
@@ -173,13 +187,18 @@ import { ref, computed, watch, onMounted } from 'vue';
 import { useSeoMeta } from '#imports';
 import type { ClinicService } from '~/composables/useApi';
 
-const { fetchClinicServices, getClinicServiceImageUrl } = useClinicServices();
+const { fetchMultiBranchClinicServices, getClinicServiceImageUrl } = useClinicServices();
+const { fetchBranches } = useBranches();
 
 const DEFAULT_LIMIT = 9;
 const fallbackImage = '/images/services/service-teeth-scaling.png';
 const searchQuery = ref('');
 const appliedSearch = ref('');
 const currentPage = ref(1);
+
+// Filter state
+const branches = ref<any[]>([]);
+const selectedBranch = ref<string | null>(null);
 
 const services = ref<ClinicService[]>([]);
 const totalServices = ref(0);
@@ -191,18 +210,28 @@ const selectedService = ref<ClinicService | null>(null);
 const modalImageError = ref(false);
 const imageErrorMap = ref<Record<string, boolean>>({});
 
+const loadBranches = async () => {
+  try {
+    const data = await fetchBranches();
+    branches.value = data;
+  } catch (error) {
+    console.error('Error fetching branches:', error);
+  }
+};
+
 const fetchServices = async () => {
   isLoading.value = true;
   loadError.value = null;
 
   try {
-    const response = await fetchClinicServices(
+    const response = await fetchMultiBranchClinicServices(
       appliedSearch.value,
       currentPage.value,
-      DEFAULT_LIMIT
+      DEFAULT_LIMIT,
+      selectedBranch.value || undefined
     );
 
-    services.value = response.data;
+    services.value = response.data || [];
     totalServices.value = response.total;
   } catch (error) {
     console.error('Error fetching clinic services:', error);
@@ -215,10 +244,14 @@ const fetchServices = async () => {
   }
 };
 
-onMounted(fetchServices);
+onMounted(() => {
+  loadBranches();
+  fetchServices();
+});
 
-watch(currentPage, (newPage, oldPage) => {
-  if (newPage !== oldPage) {
+watch([currentPage, selectedBranch], ([newPage, newBranch], [oldPage, oldBranch]) => {
+  if (newPage !== oldPage || newBranch !== oldBranch) {
+    if (newBranch !== oldBranch) currentPage.value = 1;
     fetchServices();
   }
 });

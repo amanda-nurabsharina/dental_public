@@ -106,8 +106,37 @@ export const usePromoContent = () => {
     return `${API_BASE_URL}/promocontent/image/${id}`;
   };
 
+  const fetchMultiBranchPromoContents = async (
+    search = '',
+    page = 1,
+    limit = 10,
+    branchId?: string
+  ): Promise<PromoContentListResponse> => {
+    const params = new URLSearchParams({
+      search,
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+
+    if (branchId) {
+      params.append('branch_id', branchId);
+    }
+
+    const response = await $fetch<any>(
+      `${API_BASE_URL}/publicappointment/multibranch/promos?${params.toString()}`
+    );
+
+    return {
+      data: response.data,
+      page: response.page,
+      limit: response.limit,
+      total: response.total
+    };
+  };
+
   return {
     fetchPromoContents,
+    fetchMultiBranchPromoContents,
     fetchPromoContentById,
     createPromoContent,
     updatePromoContent,

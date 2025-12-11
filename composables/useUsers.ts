@@ -279,9 +279,43 @@ export const useDoctors = () => {
     }
   }
 
+  const fetchMultiBranchDoctors = async (
+    search = '',
+    page = 1,
+    limit = 10,
+    branchId?: string
+  ): Promise<DoctorContentListResponse> => {
+    try {
+      const params = new URLSearchParams({
+        search,
+        page: page.toString(),
+        limit: limit.toString(),
+      })
+      
+      if (branchId) {
+        params.append('branch_id', branchId)
+      }
+
+      const response = await $fetch<any>(
+        `${API_BASE_URL}/publicappointment/multibranch/doctors?${params.toString()}`
+      )
+      
+      return {
+        data: response.data,
+        page: response.page,
+        limit: response.limit,
+        total: response.total
+      }
+    } catch (error) {
+      console.error('Error fetching multi-branch doctors:', error)
+      throw error
+    }
+  }
+
   return {
     fetchDoctors,
     fetchDoctorContents,
+    fetchMultiBranchDoctors,
     fetchDoctorById,
     getDoctorImageUrl,
     getAvailableDoctors,
