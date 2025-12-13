@@ -2,11 +2,11 @@
   <div>
     <BaseBreadcrumb />
     <div class="container mt-14 mb-16">
-      <div class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
+      <div class="flex flex-col lg:flex-row lg:justify-between lg:items-center mb-10 gap-y-4">
         <p class="text-regular-light text-neutral-60">
           {{ resultSummary }}
         </p>
-        <div class="flex w-full md:w-auto">
+        <div class="flex flex-col md:flex-row w-full flex-1 gap-3.5 lg:justify-end grow">
           <v-select
             v-model="selectedBranch"
             :items="branches"
@@ -21,6 +21,27 @@
             bg-color="white"
             color="primary"
           />
+          <v-text-field
+            v-model="searchQuery"
+            class="lg:!max-w-[20.5rem] !w-full"
+            placeholder="Cari promo..."
+            color="grey-200"
+            outlined
+            clearable
+            hide-details
+            @keyup.enter="handleSearch"
+          >
+            <template #prepend-inner>
+              <IconSearch size="16" class="text-secondary-1" />
+            </template>
+          </v-text-field>
+          <v-btn
+            size="x-large"
+            style="box-shadow: 4px 15px 100px 0px rgba(0, 146, 69, 0.25)"
+            @click="handleSearch"
+          >
+            Cari Promo
+          </v-btn>
         </div>
       </div>
 
@@ -188,6 +209,9 @@ const { fetchBranches } = useBranches();
 const branches = ref<any[]>([]);
 const selectedBranch = ref<string | null>(null);
 
+const searchQuery = ref('');
+const appliedSearch = ref('');
+
 const promos = ref<PromoCard[]>([...fallbackPromos]);
 const totalItems = ref(fallbackPromos.length);
 const page = ref(1);
@@ -223,16 +247,16 @@ const fetchPromos = async () => {
 
   try {
     const response = await fetchMultiBranchPromoContents(
-      '', 
+      appliedSearch.value,
       page.value, 
       DEFAULT_LIMIT,
       selectedBranch.value || undefined
     );
 
-    const mappedPromos: PromoCard[] = (response.data || []).map((promo) => ({
+    const mappedPromos: PromoCard[] = (response.data || []).map((promo: any) => ({
       id: promo.id,
       title: promo.title,
-      image: getPromoContentImageUrl(promo.id),
+      image: promo.image ? `data:image/jpeg;base64,${promo.image}` : getPromoContentImageUrl(promo.id),
       description: promo.description,
       branch_name: promo.branch_name,
     }));
@@ -269,6 +293,18 @@ watch([page, selectedBranch], ([newPage, newBranch], [oldPage, oldBranch]) => {
     fetchPromos();
   }
 });
+
+const handleSearch = () => {
+  const normalizedQuery = searchQuery.value.trim();
+
+  if (normalizedQuery === appliedSearch.value && page.value === 1) {
+    return;
+  }
+
+  appliedSearch.value = normalizedQuery;
+  page.value = 1;
+  fetchPromos();
+};
 
 const resultSummary = computed(() => {
   if (!totalItems.value) {

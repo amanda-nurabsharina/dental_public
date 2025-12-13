@@ -132,8 +132,13 @@ const doctorImageUrl = computed(() => {
     return fallbackImage;
   }
 
-  if ('photo' in props.doctor) {
+  if ('photo' in props.doctor && props.doctor.photo) {
     return props.doctor.photo;
+  }
+  
+  // Check for Base64 image from multi-branch API
+  if ('image' in props.doctor && (props.doctor as any).image) {
+    return `data:image/jpeg;base64,${(props.doctor as any).image}`;
   }
 
   // Use API image endpoint if doctor has API data

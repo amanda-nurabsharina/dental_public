@@ -317,6 +317,10 @@ const getServiceImage = (service: ClinicService) => {
     return fallbackImage;
   }
 
+  if ((service as any).image) {
+    return `data:image/jpeg;base64,${(service as any).image}`;
+  }
+
   return getClinicServiceImageUrl(service.id);
 };
 
@@ -330,6 +334,10 @@ const handleCardImageError = (serviceId: string) => {
 const modalServiceImage = computed(() => {
   if (!selectedService.value || modalImageError.value) {
     return fallbackImage;
+  }
+
+  if ((selectedService.value as any).image) {
+    return `data:image/jpeg;base64,${(selectedService.value as any).image}`;
   }
 
   return getClinicServiceImageUrl(selectedService.value.id);

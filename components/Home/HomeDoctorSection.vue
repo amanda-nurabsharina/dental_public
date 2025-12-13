@@ -47,11 +47,11 @@ interface LegacyDoctor {
 type DoctorCardData = LegacyDoctor | DoctorContent;
 
 const doctors = ref<DoctorCardData[]>([]);
-const { fetchDoctorContents } = useDoctors();
+const { fetchMultiBranchDoctors } = useDoctors();
 
 const loadDoctors = async () => {
   try {
-    const response = await fetchDoctorContents('', 1, 8);
+    const response = await fetchMultiBranchDoctors('', 1, 8);
     if (response?.data?.length) {
       doctors.value = response.data;
     }

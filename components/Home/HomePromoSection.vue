@@ -9,68 +9,46 @@
           Promo Menarik untuk Anda
         </h2>
       </div>
-      <div>
-        <v-btn variant="outlined" size="x-large" to="/promo"
-          >Lihat Semua Promo</v-btn
-        >
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+      <div
+        v-for="promo in promos"
+        :key="promo.id"
+        class="group relative aspect-[3/2] w-full overflow-hidden rounded-[2rem] select-none cursor-pointer"
+      >
+        <img
+          :src="promo.image"
+          :alt="promo.title"
+          class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+        />
+        <!-- Optional: Add overlay if needed -->
       </div>
     </div>
 
-    <div ref="emblaRef" class="promo-carousel embla">
-      <div class="embla__viewport">
-        <div class="embla__container">
-          <div
-            v-for="promo in promos"
-            :key="promo.id"
-            class="embla__slide !bg-center !bg-cover select-none"
-          >
-            <img
-              :src="promo.image"
-              :alt="promo.title"
-              class="select-none w-full h-full object-cover object-center"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div class="flex gap-x-1.5 mt-10">
-        <button
-          v-for="(_, index) in scrollSnaps"
-          :key="index"
-          class="bg-primary-20 w-3 h-1.5 rounded-full"
-          :class="{ 'bg-secondary-1 max-w-24 w-full': index === selectedIndex }"
-          type="button"
-          @click="scrollTo(index)"
-        />
-      </div>
+    <div class="flex justify-center mt-10">
+      <v-btn variant="outlined" size="large" to="/promo">
+        Lihat Semua Promo
+      </v-btn>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue';
-import emblaCarouselVue from 'embla-carousel-vue';
+import { ref, onMounted } from 'vue';
 
 defineOptions({
   name: 'PromoSection',
 });
-
-const [emblaRef, emblaApi] = emblaCarouselVue({
-  loop: false,
-  container: '.embla__container',
-});
-
-// Reactive state
-const selectedIndex = ref(0);
-const scrollSnaps = ref<number[]>([]);
-const canScrollPrev = ref(false);
-const canScrollNext = ref(true);
 
 type PromoSlide = {
   id: string;
   title: string;
   image: string;
   link?: string;
+  // Link is available in type but not used in template in original code (except router link)
+  // Original only used Click on Embla? No click handler seen in original slide.
+  // Updated code has cursor-pointer but no click handler. Keeping as original (display only).
 };
 
 const fallbackPromos: PromoSlide[] = [
@@ -101,198 +79,31 @@ const fallbackPromos: PromoSlide[] = [
 ];
 
 const promos = ref<PromoSlide[]>([...fallbackPromos]);
-const { fetchPromoContents, getPromoContentImageUrl } = usePromoContent();
-
-// Navigation methods
-const scrollTo = (index: number) => {
-  if (emblaApi.value) emblaApi.value.scrollTo(index);
-};
-
-// Update scroll state
-const updateScrollState = () => {
-  if (!emblaApi.value) return;
-
-  selectedIndex.value = emblaApi.value.selectedScrollSnap();
-  canScrollPrev.value = emblaApi.value.canScrollPrev();
-  canScrollNext.value = emblaApi.value.canScrollNext();
-};
-
-const updateScrollSnaps = () => {
-  scrollSnaps.value = promos.value.map((_, index) => index);
-};
-
-const reInitializeCarousel = () => {
-  nextTick(() => {
-    if (emblaApi.value) {
-      emblaApi.value.reInit();
-      updateScrollState();
-    }
-  });
-};
-
-const applyPromoData = (slides: PromoSlide[]) => {
-  promos.value = slides;
-  updateScrollSnaps();
-  reInitializeCarousel();
-};
+const { fetchMultiBranchPromoContents, getPromoContentImageUrl } = usePromoContent();
 
 const loadPromos = async () => {
   try {
-    const response = await fetchPromoContents('', 1, 6);
-    const mappedPromos = response.data.map((promo) => ({
+    const response = await fetchMultiBranchPromoContents('', 1, 6);
+    const mappedPromos = (response.data || []).map((promo: any) => ({
       id: promo.id,
       title: promo.title,
-      image: getPromoContentImageUrl(promo.id),
+      image: promo.image ? `data:image/jpeg;base64,${promo.image}` : getPromoContentImageUrl(promo.id),
     }));
 
-    applyPromoData(mappedPromos.length ? mappedPromos : fallbackPromos);
+    promos.value = mappedPromos.length ? mappedPromos : fallbackPromos;
   } catch (error) {
     console.error('Failed to load promo content:', error);
-    applyPromoData(fallbackPromos);
+    promos.value = fallbackPromos;
   }
 };
 
-// Initialize carousel
-onMounted(() => {
-  if (!emblaApi.value) return;
-
-  // Initialize scroll snaps (for dots)
-  updateScrollSnaps();
-
-  // Update initial state
-  updateScrollState();
-
-  // Listen for scroll events
-  emblaApi.value.on('select', updateScrollState);
-  emblaApi.value.on('reInit', updateScrollState);
-});
-
 onMounted(() => {
   loadPromos();
-});
-
-// Cleanup on unmount
-onUnmounted(() => {
-  if (emblaApi.value) {
-    emblaApi.value.off('select', updateScrollState);
-    emblaApi.value.off('reInit', updateScrollState);
-  }
 });
 </script>
 
 <style scoped>
 @reference 'tailwindcss';
 
-.promo-carousel.embla {
-  max-width: 100%;
-  margin: auto;
-}
-.promo-carousel .embla__viewport {
-  width: 100%;
-}
-.promo-carousel .embla__container {
-  display: flex;
-  gap: 2.5rem; /* gap-x-10 */
-}
-
-.promo-carousel .embla__slide {
-  position: relative;
-  aspect-ratio: 3/2; /* aspect-[3/2] */
-  @apply min-w-full md:min-w-2/3 xl:min-w-1/2;
-  border-radius: 2rem; /* rounded-4xl */
-  overflow: hidden;
-  cursor: grab;
-}
-
-.promo-carousel .embla__slide__number {
-  box-shadow: inset 0 0 0 0.2rem var(--detail-medium-contrast);
-  border-radius: 1.8rem;
-  font-size: 4rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: var(--slide-height);
-  user-select: none;
-}
-.promo-carousel .embla__controls {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  justify-content: space-between;
-  gap: 1.2rem;
-  margin-top: 1.8rem;
-}
-.promo-carousel .embla__buttons {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.6rem;
-  align-items: center;
-}
-.promo-carousel .embla__button {
-  -webkit-tap-highlight-color: rgba(var(--text-high-contrast-rgb-value), 0.5);
-  -webkit-appearance: none;
-  appearance: none;
-  background-color: transparent;
-  touch-action: manipulation;
-  display: inline-flex;
-  text-decoration: none;
-  cursor: pointer;
-  border: 0;
-  padding: 0;
-  margin: 0;
-  box-shadow: inset 0 0 0 0.2rem var(--detail-medium-contrast);
-  width: 3.6rem;
-  height: 3.6rem;
-  z-index: 1;
-  border-radius: 50%;
-  color: var(--text-body);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.promo-carousel .embla__button:disabled {
-  color: var(--detail-high-contrast);
-}
-.promo-carousel .embla__button__svg {
-  width: 35%;
-  height: 35%;
-}
-.promo-carousel .embla__dots {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  align-items: center;
-  margin-right: calc((2.6rem - 1.4rem) / 2 * -1);
-}
-.promo-carousel .embla__dot {
-  -webkit-tap-highlight-color: rgba(var(--text-high-contrast-rgb-value), 0.5);
-  -webkit-appearance: none;
-  appearance: none;
-  background-color: transparent;
-  touch-action: manipulation;
-  display: inline-flex;
-  text-decoration: none;
-  cursor: pointer;
-  border: 0;
-  padding: 0;
-  margin: 0;
-  width: 2.6rem;
-  height: 2.6rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-}
-.promo-carousel .embla__dot:after {
-  box-shadow: inset 0 0 0 0.2rem var(--detail-medium-contrast);
-  width: 1.4rem;
-  height: 1.4rem;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  content: '';
-}
-.promo-carousel .embla__dot--selected:after {
-  box-shadow: inset 0 0 0 0.2rem var(--text-body);
-}
+/* Scoped styles if needed */
 </style>
