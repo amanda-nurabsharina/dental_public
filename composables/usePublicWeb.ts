@@ -137,6 +137,8 @@ export const usePublicWeb = () => {
   return {
     fetchHero,
     getHeroImageUrl,
+    fetchHeroBanners,
+    getHeroBannerUrl,
     fetchAbout,
     getAboutImageUrl,
     fetchTestimonials,
