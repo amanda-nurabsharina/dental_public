@@ -61,6 +61,13 @@ export interface WebHeaderFooterConfig {
   copyright_text?: string;
 }
 
+export interface WebSectionHeader {
+  section_key: string;
+  badge_text?: string;
+  title?: string;
+  description?: string;
+}
+
 export const usePublicWeb = () => {
   const { API_BASE_URL } = useApi();
 
@@ -134,6 +141,34 @@ export const usePublicWeb = () => {
 
   const getHeaderLogoUrl = () => `${API_BASE_URL}/publicweb/header-footer/logo`;
 
+  const fetchSectionHeader = async (key: string): Promise<WebSectionHeader | null> => {
+    try {
+      const res: any = await $fetch(`${API_BASE_URL}/publicweb/section-header/${key}`);
+      return res?.data || null;
+    } catch (e) {
+      console.warn(`Failed to fetch section header ${key}, using fallback:`, e);
+      return null;
+    }
+  };
+
+  const fetchSectionHeaders = async (): Promise<Record<string, WebSectionHeader>> => {
+    try {
+      const res: any = await $fetch(`${API_BASE_URL}/publicweb/section-headers`);
+      const map: Record<string, WebSectionHeader> = {};
+      if (Array.isArray(res?.data)) {
+        res.data.forEach((item: WebSectionHeader) => {
+          if (item.section_key) {
+            map[item.section_key] = item;
+          }
+        });
+      }
+      return map;
+    } catch (e) {
+      console.warn('Failed to fetch section headers, using fallback:', e);
+      return {};
+    }
+  };
+
   return {
     fetchHero,
     getHeroImageUrl,
@@ -146,5 +181,7 @@ export const usePublicWeb = () => {
     fetchContactBranches,
     fetchHeaderFooter,
     getHeaderLogoUrl,
+    fetchSectionHeader,
+    fetchSectionHeaders,
   };
 };

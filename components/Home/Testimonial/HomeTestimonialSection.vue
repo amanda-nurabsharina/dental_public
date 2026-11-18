@@ -3,12 +3,10 @@
     <div
       class="flex flex-col w-full items-center text-center space-y-6 mb-10 max-w-[50.125rem] mx-auto"
     >
-      <v-chip color="primary" size="x-large">Testimoni Pasien</v-chip>
-      <h2 class="heading-2">Kata Mereka yang Sudah Merasakan</h2>
-      <p class="text-regular-normal">
-        Ribuan pasien telah mempercayakan kesehatan gigi mereka kepada kami.
-        Simak pengalaman mereka dan buktikan sendiri kualitas layanan Dental
-        Diary
+      <v-chip color="primary" size="x-large">{{ headerBadgeText }}</v-chip>
+      <h2 class="heading-2">{{ headerTitleText }}</h2>
+      <p v-if="headerDescText" class="text-regular-normal">
+        {{ headerDescText }}
       </p>
     </div>
 
@@ -114,7 +112,23 @@ const defaultTestimonials: DisplayTestimonial[] = [
 ];
 
 const apiTestimonials = ref<DisplayTestimonial[]>([]);
-const { fetchTestimonials, getTestimonialAvatarUrl } = usePublicWeb();
+const sectionHeader = ref<{ badge_text?: string; title?: string; description?: string } | null>(null);
+const { fetchTestimonials, getTestimonialAvatarUrl, fetchSectionHeader } = usePublicWeb();
+
+const headerBadgeText = computed(() => {
+  return sectionHeader.value?.badge_text || 'Testimoni Pasien';
+});
+
+const headerTitleText = computed(() => {
+  return sectionHeader.value?.title || 'Kata Mereka yang Sudah Merasakan';
+});
+
+const headerDescText = computed(() => {
+  return (
+    sectionHeader.value?.description ||
+    'Ribuan pasien telah mempercayakan kesehatan gigi mereka kepada kami. Simak pengalaman mereka dan buktikan sendiri kualitas layanan Dental Diary'
+  );
+});
 
 const displayTestimonials = computed(() => {
   if (apiTestimonials.value.length > 0) {
@@ -166,7 +180,15 @@ const initCarousel = () => {
 };
 
 onMounted(async () => {
-  const items = await fetchTestimonials();
+  const [items, sHeader] = await Promise.all([
+    fetchTestimonials(),
+    fetchSectionHeader('testimonial'),
+  ]);
+
+  if (sHeader) {
+    sectionHeader.value = sHeader;
+  }
+
   if (items && items.length > 0) {
     apiTestimonials.value = items.map((item) => ({
       id: item.id,

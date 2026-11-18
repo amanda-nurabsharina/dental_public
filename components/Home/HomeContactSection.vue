@@ -3,12 +3,10 @@
     <div
       class="mb-10 flex flex-col gap-y-6 mx-auto max-w-[50.125rem] text-center items-center"
     >
-      <v-chip color="primary" size="x-large">Kontak Kami</v-chip>
-      <h2 class="heading-2">{{ headingTitle }}</h2>
-      <p>
-        Didukung oleh tim medis berpengalaman dan bersertifikat dengan keahlian
-        di berbagai bidang kedokteran gigi untuk memberikan perawatan terbaik
-        sesuai kebutuhan Anda.
+      <v-chip color="primary" size="x-large">{{ headerBadgeText }}</v-chip>
+      <h2 class="heading-2">{{ headerTitleText }}</h2>
+      <p v-if="headerDescText">
+        {{ headerDescText }}
       </p>
     </div>
 
@@ -123,13 +121,28 @@ const defaultBranches: BranchItem[] = [
 
 const apiBranches = ref<BranchItem[]>([]);
 const brandName = ref('');
-const { fetchContactBranches, fetchHeaderFooter } = usePublicWeb();
+const sectionHeader = ref<{ badge_text?: string; title?: string; description?: string } | null>(null);
+const { fetchContactBranches, fetchHeaderFooter, fetchSectionHeader } = usePublicWeb();
 
-const headingTitle = computed(() => {
+const headerBadgeText = computed(() => {
+  return sectionHeader.value?.badge_text || 'Kontak Kami';
+});
+
+const headerTitleText = computed(() => {
+  if (sectionHeader.value?.title) {
+    return sectionHeader.value.title;
+  }
   if (brandName.value) {
     return `Klinik Gigi ${brandName.value} di Batam`;
   }
   return 'Klinik Gigi Nadira Tusam di Batam';
+});
+
+const headerDescText = computed(() => {
+  return (
+    sectionHeader.value?.description ||
+    'Didukung oleh tim medis berpengalaman dan bersertifikat dengan keahlian di berbagai bidang kedokteran gigi untuk memberikan perawatan terbaik sesuai kebutuhan Anda.'
+  );
 });
 
 const displayBranches = computed(() => {
@@ -182,10 +195,15 @@ const initCarousel = () => {
 };
 
 onMounted(async () => {
-  const [branches, headerFooter] = await Promise.all([
+  const [branches, headerFooter, sHeader] = await Promise.all([
     fetchContactBranches(),
     fetchHeaderFooter(),
+    fetchSectionHeader('contact'),
   ]);
+
+  if (sHeader) {
+    sectionHeader.value = sHeader;
+  }
 
   if (headerFooter?.brand_name) {
     brandName.value = headerFooter.brand_name.replace(/\.$/, '');

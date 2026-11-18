@@ -1,8 +1,11 @@
 <template>
   <section id="tentang" class="container">
-    <div class="flex flex-col gap-y-6 items-center mb-10">
-      <v-chip size="x-large" color="primary" class="w-fit">Tentang Klinik</v-chip>
-      <h2 class="heading-4 md:heading-2">Kepercayaan Anda, Prioritas Kami</h2>
+    <div class="flex flex-col gap-y-6 items-center mb-10 text-center max-w-[50.125rem] mx-auto">
+      <v-chip size="x-large" color="primary" class="w-fit">{{ headerBadgeText }}</v-chip>
+      <h2 class="heading-4 md:heading-2">{{ headerTitleText }}</h2>
+      <p v-if="headerDescText" class="text-small-normal md:text-regular-normal text-[#161C2D] opacity-70">
+        {{ headerDescText }}
+      </p>
     </div>
     <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-10">
       <div
@@ -105,7 +108,20 @@ const defaultFeatures = [
 ];
 
 const apiFeatures = ref<Array<WebAboutFeature & { image_url?: string }>>([]);
-const { fetchAbout, getAboutImageUrl } = usePublicWeb();
+const sectionHeader = ref<{ badge_text?: string; title?: string; description?: string } | null>(null);
+const { fetchAbout, getAboutImageUrl, fetchSectionHeader } = usePublicWeb();
+
+const headerBadgeText = computed(() => {
+  return sectionHeader.value?.badge_text || 'Tentang Klinik';
+});
+
+const headerTitleText = computed(() => {
+  return sectionHeader.value?.title || 'Kepercayaan Anda, Prioritas Kami';
+});
+
+const headerDescText = computed(() => {
+  return sectionHeader.value?.description || '';
+});
 
 const resolveIcon = (name?: string) => {
   switch (name?.toLowerCase()) {
@@ -138,7 +154,15 @@ const displayFeatures = computed(() => {
 });
 
 onMounted(async () => {
-  const items = await fetchAbout();
+  const [items, sHeader] = await Promise.all([
+    fetchAbout(),
+    fetchSectionHeader('about'),
+  ]);
+
+  if (sHeader) {
+    sectionHeader.value = sHeader;
+  }
+
   if (items && items.length > 0) {
     apiFeatures.value = items.map((item) => ({
       ...item,
