@@ -8,16 +8,17 @@
 
     <div class="space-y-1.5 max-w-[15.625rem]">
       <div class="flex gap-x-1">
-        <IconStar v-for="star in 5" :key="star" :size="21" />
+        <IconStar v-for="star in (testimony.rating || 5)" :key="star" :size="21" />
       </div>
       <p class="text-grey-500 text-regular-normal">
         {{ testimony.comment }}
       </p>
       <div class="flex gap-x-2 items-center">
         <img
-          :src="testimony.avatar"
+          :src="currentAvatar"
           :alt="`${testimony.name} avatar`"
           class="w-11 h-11 rounded-full object-cover flex-shrink-0"
+          @error="currentAvatar = '/images/testimonials/michelle.png'"
         />
         <span class="text-large-medium">{{ testimony.name }}</span>
       </div>
@@ -26,6 +27,8 @@
 </template>
 
 <script setup lang="ts">
+import { ref, watch } from 'vue';
+
 interface TestimonialProps {
   testimony: {
     name: string;
@@ -35,5 +38,13 @@ interface TestimonialProps {
   };
 }
 
-withDefaults(defineProps<TestimonialProps>(), {});
+const props = withDefaults(defineProps<TestimonialProps>(), {});
+const currentAvatar = ref(props.testimony.avatar || '/images/testimonials/michelle.png');
+
+watch(
+  () => props.testimony.avatar,
+  (newVal) => {
+    currentAvatar.value = newVal || '/images/testimonials/michelle.png';
+  }
+);
 </script>

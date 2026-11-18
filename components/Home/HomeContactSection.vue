@@ -4,7 +4,7 @@
       class="mb-10 flex flex-col gap-y-6 mx-auto max-w-[50.125rem] text-center items-center"
     >
       <v-chip color="primary" size="x-large">Kontak Kami</v-chip>
-      <h2 class="heading-2">Klinik Gigi Nadira Tusam di Batam</h2>
+      <h2 class="heading-2">{{ headingTitle }}</h2>
       <p>
         Didukung oleh tim medis berpengalaman dan bersertifikat dengan keahlian
         di berbagai bidang kedokteran gigi untuk memberikan perawatan terbaik
@@ -15,7 +15,7 @@
     <div ref="emblaRef" class="contact-carousel embla">
       <div class="embla__viewport">
         <div class="embla__container">
-          <div v-for="branch in branches" :key="branch.id" class="embla__slide">
+          <div v-for="branch in displayBranches" :key="branch.id" class="embla__slide">
             <HomeContactInfo :selected-branch="branch" />
           </div>
         </div>
@@ -23,6 +23,7 @@
     </div>
 
     <div
+      v-if="scrollSnaps.length > 1"
       class="w-full max-w-[23.375rem] flex gap-x-6 items-center mx-auto mt-10"
     >
       <v-btn
@@ -68,13 +69,26 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue';
 import emblaCarouselVue from 'embla-carousel-vue';
+import { usePublicWeb } from '~/composables/usePublicWeb';
 
 defineOptions({
   name: 'ContactSection',
 });
 
-const branches = [
+interface BranchItem {
+  id: string;
+  name: string;
+  address: string;
+  email: string;
+  whatsapp: string;
+  mapUrl?: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+const defaultBranches: BranchItem[] = [
   {
     id: 'bengkong',
     name: 'Klinik Gigi Nadira Tusam - Bengkong',
@@ -82,8 +96,8 @@ const branches = [
       'Perkokoan Esqarada, Bengkong Harapan 1 Blok A No. 8, Kel. Bengkong Laut, Kec. Bengkong, Kota Batam 29444',
     email: 'dentaldiary@gmail.com',
     whatsapp: '+628 102-1292-1222',
-    mapUrl:
-      'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3989.054762749842!2d103.9964!3d1.1137!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31da3f66b14e9cfb%3A0x123456789!2sBengkong%20Harapan%2C%20Bengkong%2C%20Batam%20City%2C%20Riau%20Islands!5e0!3m2!1sen!2sid!4v1698000000000!5m2!1sen!2sid',
+    latitude: 1.1137,
+    longitude: 103.9964,
   },
   {
     id: 'tiban',
@@ -92,8 +106,8 @@ const branches = [
       'Komplek Tiban Centre, Blok B No. 15, Kel. Tiban Baru, Kec. Sekupang, Kota Batam 29425',
     email: 'dentaldiary.tiban@gmail.com',
     whatsapp: '+628 102-1292-1333',
-    mapUrl:
-      'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3989.054762749842!2d103.9464!3d1.1637!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31da3f66b14e9cfb%3A0x987654321!2sTiban%20Baru%2C%20Sekupang%2C%20Batam%20City%2C%20Riau%20Islands!5e0!3m2!1sen!2sid!4v1698000000000!5m2!1sen!2sid',
+    latitude: 1.1637,
+    longitude: 103.9464,
   },
   {
     id: 'batamcenter',
@@ -102,13 +116,31 @@ const branches = [
       'Komplek Windsor Central, Blok C No. 28, Kel. Teluk Tering, Kec. Batam Kota, Kota Batam 29461',
     email: 'dentaldiary.center@gmail.com',
     whatsapp: '+628 102-1292-1444',
-    mapUrl:
-      'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3989.054762749842!2d104.0264!3d1.1237!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31da3f66b14e9cfb%3A0x135792468!2sTeluk%20Tering%2C%20Batam%20Kota%2C%20Batam%20City%2C%20Riau%20Islands!5e0!3m2!1sen!2sid!4v1698000000000!5m2!1sen!2sid',
+    latitude: 1.1237,
+    longitude: 104.0264,
   },
 ];
 
+const apiBranches = ref<BranchItem[]>([]);
+const brandName = ref('');
+const { fetchContactBranches, fetchHeaderFooter } = usePublicWeb();
+
+const headingTitle = computed(() => {
+  if (brandName.value) {
+    return `Klinik Gigi ${brandName.value} di Batam`;
+  }
+  return 'Klinik Gigi Nadira Tusam di Batam';
+});
+
+const displayBranches = computed(() => {
+  if (apiBranches.value.length > 0) {
+    return apiBranches.value;
+  }
+  return defaultBranches;
+});
+
 const [emblaRef, emblaApi] = emblaCarouselVue({
-  loop: true,
+  loop: false,
   container: '.embla__container',
   slidesToScroll: 1,
   align: 'start',
@@ -142,22 +174,44 @@ const updateScrollState = () => {
   canScrollNext.value = emblaApi.value.canScrollNext();
 };
 
-// Initialize carousel
-onMounted(() => {
+const initCarousel = () => {
   if (!emblaApi.value) return;
-
-  // Initialize scroll snaps (for dots)
-  scrollSnaps.value = Array.from(Array(branches.length).keys());
-
-  // Update initial state
+  emblaApi.value.reInit();
+  scrollSnaps.value = Array.from(Array(displayBranches.value.length).keys());
   updateScrollState();
+};
 
-  // Listen for scroll events
-  emblaApi.value.on('select', updateScrollState);
-  emblaApi.value.on('reInit', updateScrollState);
+onMounted(async () => {
+  const [branches, headerFooter] = await Promise.all([
+    fetchContactBranches(),
+    fetchHeaderFooter(),
+  ]);
+
+  if (headerFooter?.brand_name) {
+    brandName.value = headerFooter.brand_name.replace(/\.$/, '');
+  }
+
+  if (branches && branches.length > 0) {
+    apiBranches.value = branches.map((b) => ({
+      id: b.id,
+      name: b.branch_name,
+      address: b.address,
+      email: b.email,
+      whatsapp: b.whatsapp,
+      latitude: b.latitude,
+      longitude: b.longitude,
+      mapUrl: b.map_url,
+    }));
+  }
+
+  await nextTick();
+  if (emblaApi.value) {
+    initCarousel();
+    emblaApi.value.on('select', updateScrollState);
+    emblaApi.value.on('reInit', updateScrollState);
+  }
 });
 
-// Cleanup on unmount
 onUnmounted(() => {
   if (emblaApi.value) {
     emblaApi.value.off('select', updateScrollState);

@@ -23,6 +23,9 @@
         <div
           class="w-full h-full flex flex-col justify-end p-6 bg-gradient-to-b from-transparent from-50% to-black"
         >
+          <div v-if="service.branch_name" class="self-start mb-2 px-2 py-0.5 text-xs font-semibold rounded bg-white/20 text-white backdrop-blur-sm">
+            {{ service.branch_name }}
+          </div>
           <div class="text-large-semibold text-white group-hover:scale-105 transition-transform duration-300 origin-bottom-left">
             {{ service.title }}
           </div>
@@ -59,6 +62,7 @@ type ServiceSlide = {
   id: string;
   title: string;
   description: string;
+  branch_name?: string;
   image: string;
 };
 
@@ -102,6 +106,7 @@ const loadServices = async () => {
       id: service.id,
       title: service.title,
       description: service.description,
+      branch_name: service.branch_name,
       image: service.image ? `data:image/jpeg;base64,${service.image}` : getClinicServiceImageUrl(service.id),
     }));
 

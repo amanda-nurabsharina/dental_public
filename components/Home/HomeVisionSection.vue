@@ -1,21 +1,26 @@
 <template>
-  <section class="container">
+  <section id="tentang" class="container">
     <div class="flex flex-col gap-y-6 items-center mb-10">
-      <v-chip size="x-large" color="primary" class="w-fit"
-        >Tentang Klinik</v-chip
-      >
+      <v-chip size="x-large" color="primary" class="w-fit">Tentang Klinik</v-chip>
       <h2 class="heading-4 md:heading-2">Kepercayaan Anda, Prioritas Kami</h2>
     </div>
     <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-10">
       <div
-        v-for="feature in features"
-        :key="feature.title"
+        v-for="feature in displayFeatures"
+        :key="feature.id || feature.title"
         class="flex flex-col"
       >
         <div
-          class="mb-4 sm:mb-6 size-14 flex items-center justify-center bg-primary-20 rounded-2xl"
+          class="mb-4 sm:mb-6 size-14 flex items-center justify-center bg-primary-20 rounded-2xl overflow-hidden"
         >
-          <component :is="feature.icon" />
+          <img
+            v-if="feature.icon_type === 'image'"
+            :src="feature.image_url"
+            :alt="feature.title"
+            class="size-8 object-contain"
+            @error="feature.icon_type = 'icon'"
+          />
+          <component :is="resolveIcon(feature.icon_name)" v-else />
         </div>
         <h3 class="heading-6 md:heading-5 mb-2 sm:mb-4 text-[#161C2D]">
           {{ feature.title }}
@@ -31,6 +36,7 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted, computed } from 'vue';
 import {
   IconDentist,
   IconFacilities,
@@ -38,50 +44,108 @@ import {
   IconService,
   IconResult,
   IconEconomist,
+  IconHealthcare,
+  IconSparkling,
 } from '#components';
+import { usePublicWeb, type WebAboutFeature } from '~/composables/usePublicWeb';
 
 defineOptions({
   name: 'VisionSection',
 });
 
-const features = [
+const defaultFeatures = [
   {
-    icon: IconDentist,
+    id: 'default-1',
+    icon_type: 'icon',
+    icon_name: 'dentist',
     title: 'Dokter Berpengalaman',
     description:
       'Tim dokter bersertifikat, berpengalaman dengan puluhan tahun, terus update teknologi dental.',
   },
   {
-    icon: IconFacilities,
+    id: 'default-2',
+    icon_type: 'icon',
+    icon_name: 'facilities',
     title: 'Fasilitas Modern',
     description:
       'Peralatan canggih (digital X-ray, laser) & sterilisasi terkini untuk kenyamanan dan keamanan.',
   },
   {
-    icon: IconEconomist,
+    id: 'default-3',
+    icon_type: 'icon',
+    icon_name: 'economist',
     title: 'Harga Terjangkau',
     description:
       'Harga kompetitif dengan promo menarik tanpa mengurangi kualitas layanan yang di hadirkan.',
   },
   {
-    icon: IconSchedule,
+    id: 'default-4',
+    icon_type: 'icon',
+    icon_name: 'schedule',
     title: 'Jadwal Fleksibel',
     description:
       'Buka 7 hari, booking online 24/7, emergency call, dan waktu tunggu minimal.',
   },
   {
-    icon: IconService,
+    id: 'default-5',
+    icon_type: 'icon',
+    icon_name: 'service',
     title: 'Pelayanan Ramah',
     description:
       'Pendekatan personal, hangat, dan profesional untuk mengatasi kecemasan, khususnya untuk pasien anak.',
   },
   {
-    icon: IconResult,
+    id: 'default-6',
+    icon_type: 'icon',
+    icon_name: 'result',
     title: 'Hasil Terjamin',
     description:
       'Garansi perawatan dan follow-up berkala untuk hasil perawatan yang memuaskan dan tahan lama.',
   },
 ];
+
+const apiFeatures = ref<Array<WebAboutFeature & { image_url?: string }>>([]);
+const { fetchAbout, getAboutImageUrl } = usePublicWeb();
+
+const resolveIcon = (name?: string) => {
+  switch (name?.toLowerCase()) {
+    case 'dentist':
+      return IconDentist;
+    case 'facilities':
+      return IconFacilities;
+    case 'economist':
+      return IconEconomist;
+    case 'schedule':
+      return IconSchedule;
+    case 'service':
+      return IconService;
+    case 'result':
+      return IconResult;
+    case 'healthcare':
+      return IconHealthcare;
+    case 'sparkling':
+      return IconSparkling;
+    default:
+      return IconDentist;
+  }
+};
+
+const displayFeatures = computed(() => {
+  if (apiFeatures.value.length > 0) {
+    return apiFeatures.value;
+  }
+  return defaultFeatures;
+});
+
+onMounted(async () => {
+  const items = await fetchAbout();
+  if (items && items.length > 0) {
+    apiFeatures.value = items.map((item) => ({
+      ...item,
+      image_url: `${getAboutImageUrl(item.id)}?t=${Date.now()}`,
+    }));
+  }
+});
 </script>
 
 <style scoped></style>

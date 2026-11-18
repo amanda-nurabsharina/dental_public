@@ -16,8 +16,8 @@
       <div class="embla__viewport">
         <div class="embla__container">
           <div
-            v-for="testimony in testimonials"
-            :key="testimony.name"
+            v-for="(testimony, idx) in displayTestimonials"
+            :key="testimony.id || idx"
             class="embla__slide"
           >
             <HomeTestimonialCard :testimony="testimony" class="" />
@@ -27,6 +27,7 @@
     </div>
 
     <div
+      v-if="scrollSnaps.length > 1"
       class="w-full max-w-[23.375rem] flex gap-x-6 items-center mx-auto mt-10"
     >
       <v-btn
@@ -72,14 +73,23 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue';
 import emblaCarouselVue from 'embla-carousel-vue';
-import Index from '~/pages/index.vue';
+import { usePublicWeb } from '~/composables/usePublicWeb';
 
 defineOptions({
   name: 'TestimonialsSection',
 });
 
-const testimonials = [
+interface DisplayTestimonial {
+  id?: string;
+  name: string;
+  avatar: string;
+  rating: number;
+  comment: string;
+}
+
+const defaultTestimonials: DisplayTestimonial[] = [
   {
     name: 'Michelle S',
     avatar: '/images/testimonials/michelle.png',
@@ -101,87 +111,20 @@ const testimonials = [
     comment:
       'Fasilitas klinik sangat modern dan bersih. Proses perawatan tidak menyakitkan sama sekali. Tim medis sangat berpengalaman dan ramah',
   },
-  {
-    name: 'John Doe',
-    avatar: '/images/testimonials/michelle.png',
-    rating: 5,
-    comment:
-      'Fasilitas klinik sangat modern dan bersih. Proses perawatan tidak menyakitkan sama sekali. Tim medis sangat berpengalaman dan ramah',
-  },
-  {
-    name: 'Sarah Amanda',
-    avatar: '/images/testimonials/michelle.png',
-    rating: 5,
-    comment:
-      'Pengalaman pertama kali cabut gigi bungsu di sini sangat nyaman. Dokter sangat sabar menjelaskan prosedur dan memberikan tips perawatan setelahnya.',
-  },
-  {
-    name: 'Rizky Pratama',
-    avatar: '/images/testimonials/michelle.png',
-    rating: 4,
-    comment:
-      'Jadwal konsultasi sangat fleksibel dan mudah diatur. Hasil veneer gigi saya terlihat natural dan sesuai dengan bentuk wajah. Terima kasih Dental Diary!',
-  },
-  {
-    name: 'Diana Sari',
-    avatar: '/images/testimonials/michelle.png',
-    rating: 5,
-    comment:
-      'Anak saya yang biasanya takut ke dokter gigi jadi senang kesini. Ruang perawatan anak sangat menarik dan dokter anak sangat ramah.',
-  },
-  {
-    name: 'Ahmad Fauzi',
-    avatar: '/images/testimonials/michelle.png',
-    rating: 5,
-    comment:
-      'Proses implant gigi berjalan sangat lancar. Teknologi yang digunakan canggih dan hasil akhirnya sangat memuaskan. Highly recommended!',
-  },
-  {
-    name: 'Lestari Wulandari',
-    avatar: '/images/testimonials/michelle.png',
-    rating: 4,
-    comment:
-      'Perawatan scaling rutin di sini selalu thorough dan hasil bersih maksimal. Staff administrasi juga sangat membantu dalam pengaturan jadwal.',
-  },
-  {
-    name: 'Kevin Wijaya',
-    avatar: '/images/testimonials/michelle.png',
-    rating: 5,
-    comment:
-      'Konsultasi whitening teeth sangat detail dan hasilnya melebihi ekspektasi. Gigi saya jadi lebih putih alami tanpa efek samping.',
-  },
-  {
-    name: 'Nurul Hidayah',
-    avatar: '/images/testimonials/michelle.png',
-    rating: 5,
-    comment:
-      'Pemasangan bracket yang rapi dan nyaman dipakai. Kontrol rutin bulanan selalu tepat waktu dan progress perawatan ortodonti sangat baik.',
-  },
-  {
-    name: 'Bayu Santoso',
-    avatar: '/images/testimonials/michelle.png',
-    rating: 4,
-    comment:
-      'Penanganan emergency toothache di weekend sangat responsif. Dokter jaga siap siaga dan memberikan solusi cepat untuk mengatasi nyeri.',
-  },
-  {
-    name: 'Indira Putri',
-    avatar: '/images/testimonials/michelle.png',
-    rating: 5,
-    comment:
-      'Konsep klinik yang modern dengan teknologi digital impression membuat pengalaman perawatan crown gigi jadi lebih efisien dan akurat.',
-  },
-  {
-    name: 'Denny Kurniawan',
-    avatar: '/images/testimonials/michelle.png',
-    rating: 5,
-    comment:
-      'Paket family dental care sangat worth it. Sekeluarga bisa perawatan gigi dengan harga terjangkau dan kualitas pelayanan premium.',
-  },
 ];
 
+const apiTestimonials = ref<DisplayTestimonial[]>([]);
+const { fetchTestimonials, getTestimonialAvatarUrl } = usePublicWeb();
+
+const displayTestimonials = computed(() => {
+  if (apiTestimonials.value.length > 0) {
+    return apiTestimonials.value;
+  }
+  return defaultTestimonials;
+});
+
 const [emblaRef, emblaApi] = emblaCarouselVue({
-  loop: true,
+  loop: false,
   container: '.embla__container',
   slidesToScroll: 1,
   align: 'start',
@@ -215,22 +158,33 @@ const updateScrollState = () => {
   canScrollNext.value = emblaApi.value.canScrollNext();
 };
 
-// Initialize carousel
-onMounted(() => {
+const initCarousel = () => {
   if (!emblaApi.value) return;
-
-  // Initialize scroll snaps (for dots)
-  scrollSnaps.value = Array.from(Array(testimonials.length).keys());
-
-  // Update initial state
+  emblaApi.value.reInit();
+  scrollSnaps.value = Array.from(Array(displayTestimonials.value.length).keys());
   updateScrollState();
+};
 
-  // Listen for scroll events
-  emblaApi.value.on('select', updateScrollState);
-  emblaApi.value.on('reInit', updateScrollState);
+onMounted(async () => {
+  const items = await fetchTestimonials();
+  if (items && items.length > 0) {
+    apiTestimonials.value = items.map((item) => ({
+      id: item.id,
+      name: item.patient_name,
+      avatar: `${getTestimonialAvatarUrl(item.id)}?t=${Date.now()}`,
+      rating: item.rating,
+      comment: item.comment,
+    }));
+  }
+
+  await nextTick();
+  if (emblaApi.value) {
+    initCarousel();
+    emblaApi.value.on('select', updateScrollState);
+    emblaApi.value.on('reInit', updateScrollState);
+  }
 });
 
-// Cleanup on unmount
 onUnmounted(() => {
   if (emblaApi.value) {
     emblaApi.value.off('select', updateScrollState);
@@ -249,102 +203,9 @@ onUnmounted(() => {
   @apply w-full overflow-hidden;
 }
 .testimonial-carousel .embla__container {
-  @apply flex touch-pan-y touch-pinch-zoom -ml-10;
+  @apply flex gap-x-6;
 }
-
 .testimonial-carousel .embla__slide {
-  @apply relative flex-[0_0_calc(100%/2)] lg:flex-[0_0_calc(100%/3)] pl-10 rounded-4xl select-none overflow-visible cursor-grab;
-}
-
-.testimonial-carousel .embla__slide__number {
-  box-shadow: inset 0 0 0 0.2rem var(--detail-medium-contrast);
-  border-radius: 1.8rem;
-  font-size: 4rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: var(--slide-height);
-  user-select: none;
-}
-.testimonial-carousel .embla__controls {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  justify-content: space-between;
-  gap: 1.2rem;
-  margin-top: 1.8rem;
-}
-.testimonial-carousel .embla__buttons {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.6rem;
-  align-items: center;
-}
-.testimonial-carousel .embla__button {
-  -webkit-tap-highlight-color: rgba(var(--text-high-contrast-rgb-value), 0.5);
-  -webkit-appearance: none;
-  appearance: none;
-  background-color: transparent;
-  touch-action: manipulation;
-  display: inline-flex;
-  text-decoration: none;
-  cursor: pointer;
-  border: 0;
-  padding: 0;
-  margin: 0;
-  box-shadow: inset 0 0 0 0.2rem var(--detail-medium-contrast);
-  width: 3.6rem;
-  height: 3.6rem;
-  z-index: 1;
-  border-radius: 50%;
-  color: var(--text-body);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.testimonial-carousel .embla__button:disabled {
-  color: var(--detail-high-contrast);
-}
-.testimonial-carousel .embla__button__svg {
-  width: 35%;
-  height: 35%;
-}
-.testimonial-carousel .embla__dots {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  align-items: center;
-  margin-right: calc((2.6rem - 1.4rem) / 2 * -1);
-}
-.testimonial-carousel .embla__dot {
-  -webkit-tap-highlight-color: rgba(var(--text-high-contrast-rgb-value), 0.5);
-  -webkit-appearance: none;
-  appearance: none;
-  background-color: transparent;
-  touch-action: manipulation;
-  display: inline-flex;
-  text-decoration: none;
-  cursor: pointer;
-  border: 0;
-  padding: 0;
-  margin: 0;
-  width: 2.6rem;
-  height: 2.6rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-}
-.testimonial-carousel .embla__dot:after {
-  box-shadow: inset 0 0 0 0.2rem var(--detail-medium-contrast);
-  width: 1.4rem;
-  height: 1.4rem;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  content: '';
-}
-.testimonial-carousel .embla__dot--selected:after {
-  box-shadow: inset 0 0 0 0.2rem var(--text-body);
+  @apply flex-[0_0_auto] min-w-0 max-w-[20.875rem] w-full;
 }
 </style>

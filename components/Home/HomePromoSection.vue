@@ -22,6 +22,9 @@
           :alt="promo.title"
           class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
         />
+        <div v-if="promo.branch_name" class="absolute bottom-3 left-3 px-2.5 py-1 text-xs font-semibold rounded-lg bg-black/60 text-white backdrop-blur-sm">
+          {{ promo.branch_name }}
+        </div>
         <!-- Optional: Add overlay if needed -->
       </div>
     </div>
@@ -45,10 +48,8 @@ type PromoSlide = {
   id: string;
   title: string;
   image: string;
+  branch_name?: string;
   link?: string;
-  // Link is available in type but not used in template in original code (except router link)
-  // Original only used Click on Embla? No click handler seen in original slide.
-  // Updated code has cursor-pointer but no click handler. Keeping as original (display only).
 };
 
 const fallbackPromos: PromoSlide[] = [
@@ -87,6 +88,7 @@ const loadPromos = async () => {
     const mappedPromos = (response.data || []).map((promo: any) => ({
       id: promo.id,
       title: promo.title,
+      branch_name: promo.branch_name,
       image: promo.image ? `data:image/jpeg;base64,${promo.image}` : getPromoContentImageUrl(promo.id),
     }));
 

@@ -84,6 +84,9 @@
                 />
               </div>
               <div class="space-y-2">
+                <div v-if="service.branch_name" class="inline-block px-2 py-0.5 text-xs font-semibold rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+                  {{ service.branch_name }}
+                </div>
                 <div class="heading-6 lg:heading-5 text-[#161C2D]">
                   {{ service.title }}
                 </div>

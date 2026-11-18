@@ -8,33 +8,33 @@
           <template #prepend>
             <IconHealthcare />
           </template>
-          <span class="text-small-normal md:text-regular-normal"
-            >Pelayanan Kesehatan Terpercaya</span
-          >
+          <span class="text-small-normal md:text-regular-normal">
+            {{ heroConfig?.tagline || 'Pelayanan Kesehatan Terpercaya' }}
+          </span>
         </v-chip>
         <div class="flex flex-col gap-y-6">
           <h1 class="heading-2 md:heading-1 text-grey-900">
-            Wujudkan Senyum Impian Anda, Bersama Kami
+            {{ heroConfig?.title || 'Wujudkan Senyum Impian Anda, Bersama Kami' }}
           </h1>
           <p class="text-grey-900 text-small-normal md:text-regular-normal">
-            Klinik Gigi Modern dengan Perawatan Profesional, Nyaman, dan Minim
-            Rasa Sakit untuk Semua Usia. Nikmati layanan perawatan gigi lengkap
-            dari tim dokter ahli yang berpengalaman dan berdedikasi.
+            {{ heroConfig?.description || 'Klinik Gigi Modern dengan Perawatan Profesional, Nyaman, dan Minim Rasa Sakit untuk Semua Usia. Nikmati layanan perawatan gigi lengkap dari tim dokter ahli yang berpengalaman dan berdedikasi.' }}
           </p>
           <div class="flex flex-wrap gap-x-2 md:gap-x-4">
             <v-btn
               size="x-large"
-              to="/reservation"
+              :to="heroConfig?.btn_primary_url || '/reservation'"
               class="!text-small-normal md:!text-regular-normal !glowing-btn-primary"
-              >Reservasi Konsultasi</v-btn
             >
+              {{ heroConfig?.btn_primary_text || 'Reservasi Konsultasi' }}
+            </v-btn>
             <v-btn
               variant="outlined"
               size="x-large"
-              to="/services"
+              :to="heroConfig?.btn_secondary_url || '/services'"
               class="!text-small-normal md:!text-regular-normal"
-              >Lihat Layanan Kami</v-btn
             >
+              {{ heroConfig?.btn_secondary_text || 'Lihat Layanan Kami' }}
+            </v-btn>
           </div>
         </div>
       </div>
@@ -47,19 +47,20 @@
         <div class="embla__viewport">
           <div class="embla__container">
             <div
-              v-for="promo in promos"
-              :key="promo.id"
+              v-for="slide in heroSlides"
+              :key="slide.id"
               class="embla__slide !bg-center !bg-cover select-none"
             >
               <img
-                :src="promo.image"
+                :src="slide.image"
                 class="select-none w-full h-full object-cover object-center"
+                @error="handleSlideError(slide.id)"
               />
             </div>
           </div>
         </div>
 
-        <div class="flex gap-x-1.5 mt-10">
+        <div v-if="scrollSnaps.length > 1" class="flex gap-x-1.5 mt-10">
           <button
             v-for="(_, index) in scrollSnaps"
             :key="index"
@@ -77,7 +78,9 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted, onUnmounted } from 'vue';
 import emblaCarouselVue from 'embla-carousel-vue';
+import type { WebHeroContent } from '~/composables/usePublicWeb';
 
 defineOptions({
   name: 'HeroSection',
@@ -94,6 +97,29 @@ const scrollSnaps = ref<number[]>([]);
 const canScrollPrev = ref(false);
 const canScrollNext = ref(true);
 
+const { fetchHero, getHeroImageUrl } = usePublicWeb();
+const heroConfig = ref<WebHeroContent | null>(null);
+
+const defaultSlides = [
+  { id: '1', image: '/images/home/home-1-tindakan.png' },
+  { id: '2', image: '/images/home/home-2-konsul.png' },
+  { id: '3', image: '/images/home/home-1-tindakan.png' },
+  { id: '4', image: '/images/home/home-2-konsul.png' },
+];
+
+const heroSlides = ref<Array<{ id: string; image: string }>>([...defaultSlides]);
+
+const handleSlideError = (slideId: string) => {
+  // If uploaded hero banner fails to load, remove it or fallback
+  if (slideId === 'hero-custom') {
+    heroSlides.value = heroSlides.value.filter((s) => s.id !== 'hero-custom');
+    if (emblaApi.value) {
+      emblaApi.value.reInit();
+      scrollSnaps.value = Array.from(Array(heroSlides.value.length).keys());
+    }
+  }
+};
+
 // Navigation methods
 const scrollTo = (index: number) => {
   if (emblaApi.value) emblaApi.value.scrollTo(index);
@@ -108,47 +134,32 @@ const updateScrollState = () => {
   canScrollNext.value = emblaApi.value.canScrollNext();
 };
 
-// Initialize carousel
-onMounted(() => {
-  if (!emblaApi.value) return;
+onMounted(async () => {
+  const heroData = await fetchHero();
+  if (heroData) {
+    heroConfig.value = heroData;
+    // Check if custom image can be used
+    const customImgUrl = `${getHeroImageUrl()}?t=${Date.now()}`;
+    heroSlides.value = [
+      { id: 'hero-custom', image: customImgUrl },
+      ...defaultSlides,
+    ];
+  }
 
-  // Initialize scroll snaps (for dots)
-  scrollSnaps.value = Array.from(Array(promos.length).keys());
-
-  // Update initial state
-  updateScrollState();
-
-  // Listen for scroll events
-  emblaApi.value.on('select', updateScrollState);
-  emblaApi.value.on('reInit', updateScrollState);
+  if (emblaApi.value) {
+    scrollSnaps.value = Array.from(Array(heroSlides.value.length).keys());
+    updateScrollState();
+    emblaApi.value.on('select', updateScrollState);
+    emblaApi.value.on('reInit', updateScrollState);
+  }
 });
 
-// Cleanup on unmount
 onUnmounted(() => {
   if (emblaApi.value) {
     emblaApi.value.off('select', updateScrollState);
     emblaApi.value.off('reInit', updateScrollState);
   }
 });
-
-const promos = [
-  {
-    id: '1',
-    image: '/images/home/home-1-tindakan.png',
-  },
-  {
-    id: '2',
-    image: '/images/home/home-2-konsul.png',
-  },
-  {
-    id: '3',
-    image: '/images/home/home-1-tindakan.png',
-  },
-  {
-    id: '4',
-    image: '/images/home/home-2-konsul.png',
-  },
-];
 </script>
 
 <style scoped>
@@ -158,111 +169,17 @@ const promos = [
 }
 .home-hero-carousel .embla__viewport {
   width: 100%;
-  /* overflow: hidden; */
 }
 .home-hero-carousel .embla__container {
   display: flex;
-  gap: 2.5rem; /* gap-x-10 */
+  gap: 2.5rem;
 }
-
 .home-hero-carousel .embla__slide {
   position: relative;
-  aspect-ratio: 466/405; /* aspect-[3/2] */
-  min-width: 100%; /* min-w-[50%] */
-  border-radius: 2rem; /* rounded-4xl */
+  aspect-ratio: 466/405;
+  min-width: 100%;
+  border-radius: 2rem;
   overflow: hidden;
   cursor: grab;
-}
-
-.home-hero-carousel .embla__slide__number {
-  box-shadow: inset 0 0 0 0.2rem var(--detail-medium-contrast);
-  border-radius: 1.8rem;
-  font-size: 4rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: var(--slide-height);
-  user-select: none;
-}
-.home-hero-carousel .embla__controls {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  justify-content: space-between;
-  gap: 1.2rem;
-  margin-top: 1.8rem;
-}
-.home-hero-carousel .embla__buttons {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.6rem;
-  align-items: center;
-}
-.home-hero-carousel .embla__button {
-  -webkit-tap-highlight-color: rgba(var(--text-high-contrast-rgb-value), 0.5);
-  -webkit-appearance: none;
-  appearance: none;
-  background-color: transparent;
-  touch-action: manipulation;
-  display: inline-flex;
-  text-decoration: none;
-  cursor: pointer;
-  border: 0;
-  padding: 0;
-  margin: 0;
-  box-shadow: inset 0 0 0 0.2rem var(--detail-medium-contrast);
-  width: 3.6rem;
-  height: 3.6rem;
-  z-index: 1;
-  border-radius: 50%;
-  color: var(--text-body);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.home-hero-carousel .embla__button:disabled {
-  color: var(--detail-high-contrast);
-}
-.home-hero-carousel .embla__button__svg {
-  width: 35%;
-  height: 35%;
-}
-.home-hero-carousel .embla__dots {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  align-items: center;
-  margin-right: calc((2.6rem - 1.4rem) / 2 * -1);
-}
-.home-hero-carousel .embla__dot {
-  -webkit-tap-highlight-color: rgba(var(--text-high-contrast-rgb-value), 0.5);
-  -webkit-appearance: none;
-  appearance: none;
-  background-color: transparent;
-  touch-action: manipulation;
-  display: inline-flex;
-  text-decoration: none;
-  cursor: pointer;
-  border: 0;
-  padding: 0;
-  margin: 0;
-  width: 2.6rem;
-  height: 2.6rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-}
-.home-hero-carousel .embla__dot:after {
-  box-shadow: inset 0 0 0 0.2rem var(--detail-medium-contrast);
-  width: 1.4rem;
-  height: 1.4rem;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  content: '';
-}
-.home-hero-carousel .embla__dot--selected:after {
-  box-shadow: inset 0 0 0 0.2rem var(--text-body);
 }
 </style>

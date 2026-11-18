@@ -1,9 +1,18 @@
-<template lang="">
+<template>
   <header class="w-full bg-white">
     <div
       class="container min-h-[5.625rem] px-4 py-2 flex items-center justify-between"
     >
-      <NuxtLink class="heading-5 text-primary" to="/">Dental Diary.</NuxtLink>
+      <NuxtLink class="heading-5 text-primary flex items-center gap-2.5" to="/">
+        <img
+          v-if="hasLogo"
+          :src="logoUrl"
+          alt="Logo"
+          class="h-9 w-auto object-contain"
+          @error="hasLogo = false"
+        />
+        <span>{{ headerConfig?.brand_name || 'Dental Diary.' }}</span>
+      </NuxtLink>
       <div class="gap-x-1 hidden lg:flex">
         <v-btn
           v-for="link in links"
@@ -53,15 +62,27 @@
     </div>
   </v-navigation-drawer>
 </template>
-<script setup>
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue';
+
 const links = [
   { title: 'Beranda', to: '/' },
   { title: 'Layanan', to: '/services' },
   { title: 'Dokter', to: '/doctors' },
-  //{ title: 'Jadwal', to: '/schedules' },
-  //{ title: 'Testimoni', to: '/testimonials' },
-  //{ title: 'Kontak Kami', to: '/contact' },
 ];
 
 const isOpenSidebar = ref(false);
+const { fetchHeaderFooter, getHeaderLogoUrl } = usePublicWeb();
+const headerConfig = ref<{ brand_name?: string } | null>(null);
+const logoUrl = ref('');
+const hasLogo = ref(true);
+
+onMounted(async () => {
+  logoUrl.value = `${getHeaderLogoUrl()}?t=${Date.now()}`;
+  const res = await fetchHeaderFooter();
+  if (res) {
+    headerConfig.value = res;
+  }
+});
 </script>
