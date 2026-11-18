@@ -64,7 +64,7 @@
           <button
             v-for="(_, index) in scrollSnaps"
             :key="index"
-            class="bg-primary-20 w-3 h-1.5 rounded-full"
+            class="bg-primary-20 w-3 h-1.5 rounded-full transition-all duration-300"
             :class="{
               'bg-secondary-1 max-w-24 w-full': index === selectedIndex,
             }"
@@ -78,7 +78,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick } from 'vue';
 import emblaCarouselVue from 'embla-carousel-vue';
 import type { WebHeroContent } from '~/composables/usePublicWeb';
 
@@ -87,7 +87,7 @@ defineOptions({
 });
 
 const [emblaRef, emblaApi] = emblaCarouselVue({
-  loop: false,
+  loop: true,
   container: '.embla__container',
 });
 
@@ -97,7 +97,7 @@ const scrollSnaps = ref<number[]>([]);
 const canScrollPrev = ref(false);
 const canScrollNext = ref(true);
 
-const { fetchHero, getHeroImageUrl } = usePublicWeb();
+const { fetchHero, fetchHeroBanners, getHeroBannerUrl } = usePublicWeb();
 const heroConfig = ref<WebHeroContent | null>(null);
 
 const defaultSlides = [
@@ -110,13 +110,13 @@ const defaultSlides = [
 const heroSlides = ref<Array<{ id: string; image: string }>>([...defaultSlides]);
 
 const handleSlideError = (slideId: string) => {
-  // If uploaded hero banner fails to load, remove it or fallback
-  if (slideId === 'hero-custom') {
-    heroSlides.value = heroSlides.value.filter((s) => s.id !== 'hero-custom');
-    if (emblaApi.value) {
-      emblaApi.value.reInit();
-      scrollSnaps.value = Array.from(Array(heroSlides.value.length).keys());
-    }
+  heroSlides.value = heroSlides.value.filter((s) => s.id !== slideId);
+  if (heroSlides.value.length === 0) {
+    heroSlides.value = [...defaultSlides];
+  }
+  if (emblaApi.value) {
+    emblaApi.value.reInit();
+    scrollSnaps.value = Array.from(Array(heroSlides.value.length).keys());
   }
 };
 
@@ -134,21 +134,35 @@ const updateScrollState = () => {
   canScrollNext.value = emblaApi.value.canScrollNext();
 };
 
+const initCarousel = () => {
+  if (!emblaApi.value) return;
+  emblaApi.value.reInit();
+  scrollSnaps.value = Array.from(Array(heroSlides.value.length).keys());
+  updateScrollState();
+};
+
 onMounted(async () => {
-  const heroData = await fetchHero();
+  const [heroData, banners] = await Promise.all([
+    fetchHero(),
+    fetchHeroBanners(),
+  ]);
+
   if (heroData) {
     heroConfig.value = heroData;
-    // Check if custom image can be used
-    const customImgUrl = `${getHeroImageUrl()}?t=${Date.now()}`;
-    heroSlides.value = [
-      { id: 'hero-custom', image: customImgUrl },
-      ...defaultSlides,
-    ];
   }
 
+  if (banners && banners.length > 0) {
+    heroSlides.value = banners.map((b) => ({
+      id: b.id,
+      image: `${getHeroBannerUrl(b.id)}?t=${Date.now()}`,
+    }));
+  } else {
+    heroSlides.value = [...defaultSlides];
+  }
+
+  await nextTick();
   if (emblaApi.value) {
-    scrollSnaps.value = Array.from(Array(heroSlides.value.length).keys());
-    updateScrollState();
+    initCarousel();
     emblaApi.value.on('select', updateScrollState);
     emblaApi.value.on('reInit', updateScrollState);
   }

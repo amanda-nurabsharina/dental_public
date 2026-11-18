@@ -10,6 +10,13 @@ export interface WebHeroContent {
   is_active?: boolean;
 }
 
+export interface WebHeroBanner {
+  id: string;
+  title?: string;
+  order_index?: number;
+  is_active?: boolean;
+}
+
 export interface WebAboutFeature {
   id: string;
   title: string;
@@ -68,6 +75,18 @@ export const usePublicWeb = () => {
   };
 
   const getHeroImageUrl = () => `${API_BASE_URL}/publicweb/hero/image`;
+
+  const fetchHeroBanners = async (): Promise<WebHeroBanner[]> => {
+    try {
+      const res: any = await $fetch(`${API_BASE_URL}/publicweb/hero/banners`);
+      return res?.data || [];
+    } catch (e) {
+      console.warn('Failed to fetch public hero banners:', e);
+      return [];
+    }
+  };
+
+  const getHeroBannerUrl = (id: string) => `${API_BASE_URL}/publicweb/hero/banner/${id}`;
 
   const fetchAbout = async (): Promise<WebAboutFeature[]> => {
     try {
