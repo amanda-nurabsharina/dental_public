@@ -3,7 +3,18 @@
     <div class="container py-[3.125rem]">
       <div class="flex flex-col lg:flex-row justify-between mb-14 gap-y-24">
         <div class="flex flex-col gap-y-5 max-w-[33rem]">
-          <div class="heading-5">{{ footerConfig?.brand_name || 'Dental Diary.' }}</div>
+          <div class="flex items-center gap-3">
+            <img
+              v-if="logoUrl && hasLogo"
+              :src="logoUrl"
+              alt="Logo"
+              class="h-9 w-auto max-h-10 object-contain"
+              @error="hasLogo = false"
+            />
+            <div class="heading-5 text-primary font-bold">
+              {{ footerConfig?.brand_name || 'Dental Diary.' }}
+            </div>
+          </div>
           <p class="text-regular-normal">
             {{ footerConfig?.brand_description || 'Memberikan pelayanan kesehatan gigi terbaik dengan teknologi modern dan pelayanan yang ramah' }}
           </p>
@@ -91,7 +102,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
-import type { WebHeaderFooterConfig } from '~/composables/usePublicWeb';
+import { usePublicWeb, type WebHeaderFooterConfig } from '~/composables/usePublicWeb';
 
 const quickLinks = [
   { title: 'Beranda', to: '/' },
@@ -100,10 +111,14 @@ const quickLinks = [
   { title: 'Dokter Kami', to: '/doctors' },
 ];
 
-const { fetchHeaderFooter } = usePublicWeb();
+const { fetchHeaderFooter, getHeaderLogoUrl } = usePublicWeb();
 const footerConfig = ref<WebHeaderFooterConfig | null>(null);
+const logoUrl = ref('');
+const hasLogo = ref(true);
 
 onMounted(async () => {
+  logoUrl.value = `${getHeaderLogoUrl()}?t=${Date.now()}`;
+  hasLogo.value = true;
   const res = await fetchHeaderFooter();
   if (res) {
     footerConfig.value = res;
